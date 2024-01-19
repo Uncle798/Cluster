@@ -1,0 +1,58 @@
+name: Initialize proxy hosts
+hosts: proxy
+remote_user: branson
+become: true
+
+tasks:
+  - name: install keepalived
+    ansible.builtin.apt:
+      update_cache: true
+      name: keepalived
+  - name: install haproxy
+    ansible.builtin.apt:
+      name: haproxy
+  - name: install inadyn
+    ansible.builtin.apt:
+      name: inadyn
+  - name: install certbot
+    community.general.snap:
+      name: certbot
+      classic: true
+  - name: prepare the certbot command
+    ansible.builtin.command: ln -s /snap/bin/certbot /usr/bin/certbot
+  - name: install certbot cloudflare plugin
+    community.general.snap:
+      name: certbot-dns-cloudflare
+  - name: configure keepalived
+    ansible.builtin.copy:
+      src: ~/Documents/Cluster/proxys/keepalived.conf
+      dest: /etc/keepalived/keepalived.conf
+  - name: configure haproxy
+    ansible.builtin.copy:
+      src: ~/Documents/Cluster/proxys/haproxy.cnf
+      dest: /ect/haproxy/haproxy.cnf
+  - name: enable keepalived
+    ansible.builtin.systemd_service:
+      name: keepalived
+      enabled: true
+      state: reloaded
+  - name: enable haproxy
+    ansible.builtin.systemd_service:
+      name: haproxy
+      enabled: true
+      state: reloaded
+  - name: configure inadyn
+    ansible.builtin.copy:
+      src: ~/Documents/Cluster/proxys/inadyn.conf
+      dest: /etc/inadyn.conf
+  - name: enable inadyn
+    ansible.builtin.systemd_service:
+      name: inadyn
+      enabled: true
+      state: reloaded
+  - name: configure certbot
+    ansible.builtin.copy:
+      src: ~/Documents/Cluster/proxys/cloudflare.ini
+      dest: /etc/certbot/cloudflareAPI.ini
+
+  
