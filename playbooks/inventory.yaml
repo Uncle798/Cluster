@@ -5,7 +5,7 @@ proxy:
     chromebox021.bransonschlegel.com:
       ansible_host: 192.168.4.3
     chromebox03.bransonschlegel.com:
-      ansible_host: 192.168.4.5
+      ansible_host: 192.168.4.116
 k3sControl:
   hosts:
     chromebox11.bransonschlegel.com:

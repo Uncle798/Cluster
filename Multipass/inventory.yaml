@@ -1,0 +1,8 @@
+vms:
+  hosts:
+    test01:
+      ansible_host: 192.168.64.14
+    test02:
+      ansible_host: 192.168.64.15
+    test03:
+      ansible_host: 192.168.64.16

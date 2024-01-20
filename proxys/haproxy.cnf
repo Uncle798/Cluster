@@ -1,0 +1,14 @@
+global
+
+defaults
+
+frontend 
+
+backend k3s_control
+    mode http
+    balance leaseconn
+    server chromebox11 192.168.4.11 check
+    server chromebox11 192.168.4.11 check
+    server chromebox11 192.168.4.11 check
+    server chromebox11 192.168.4.11 check
+    server chromebox11 192.168.4.11 check

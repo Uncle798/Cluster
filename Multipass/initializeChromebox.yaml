@@ -1,22 +1,24 @@
-- name: Initialize chromeboxes
-  hosts: chromebox03.bransonschlegel.com
-  remote_user: branson
+- name: Initialize VMs
+  hosts: vms
   become: true
-
+  remote_user: branson
+  vars:
+    auth_token: onePassAuthToken.yaml
+    user_password: lookup('onepassword', 'chromebox', subdomain='Ansible', secret_key={{ auth_token }})
   tasks:
     - name: Fix network start delay
       ansible.builtin.copy:
         src: ~/Documents/Linux/systemd-networkd-wait-online.service
         dest: /etc/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service
         owner: root
-        mode: u=rwx,g=rx,o=0
+        mode: u=rwx,g=rx
     - name: Set timezone
       community.general.timezone:
         name: America/Boise
     - name: Change password
       ansible.builtin.user:
         name: branson
-        password: "{{ lookup('community.general.onepassword', 'chromeboxes')  | password_hash('sha512') }}"
+        password: "{{ user_password | password_hash('sha512') }}"
     - name: Apt update
       ansible.builtin.apt:
         update_cache: true
@@ -35,5 +37,3 @@
         reboot_timeout: 100
         post_reboot_delay: 30
         test_command: uptime
-
-

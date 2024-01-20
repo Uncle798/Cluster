@@ -1,58 +1,81 @@
-name: Initialize proxy hosts
-hosts: proxy
-remote_user: branson
-become: true
+- name: Initialize proxy hosts
+  hosts: all
+  remote_user: branson
+  become: true
 
-tasks:
-  - name: install keepalived
-    ansible.builtin.apt:
-      update_cache: true
-      name: keepalived
-  - name: install haproxy
-    ansible.builtin.apt:
-      name: haproxy
-  - name: install inadyn
-    ansible.builtin.apt:
-      name: inadyn
-  - name: install certbot
-    community.general.snap:
-      name: certbot
-      classic: true
-  - name: prepare the certbot command
-    ansible.builtin.command: ln -s /snap/bin/certbot /usr/bin/certbot
-  - name: install certbot cloudflare plugin
-    community.general.snap:
-      name: certbot-dns-cloudflare
-  - name: configure keepalived
-    ansible.builtin.copy:
-      src: ~/Documents/Cluster/proxys/keepalived.conf
-      dest: /etc/keepalived/keepalived.conf
-  - name: configure haproxy
-    ansible.builtin.copy:
-      src: ~/Documents/Cluster/proxys/haproxy.cnf
-      dest: /ect/haproxy/haproxy.cnf
-  - name: enable keepalived
-    ansible.builtin.systemd_service:
-      name: keepalived
-      enabled: true
-      state: reloaded
-  - name: enable haproxy
-    ansible.builtin.systemd_service:
-      name: haproxy
-      enabled: true
-      state: reloaded
-  - name: configure inadyn
-    ansible.builtin.copy:
-      src: ~/Documents/Cluster/proxys/inadyn.conf
-      dest: /etc/inadyn.conf
-  - name: enable inadyn
-    ansible.builtin.systemd_service:
-      name: inadyn
-      enabled: true
-      state: reloaded
-  - name: configure certbot
-    ansible.builtin.copy:
-      src: ~/Documents/Cluster/proxys/cloudflare.ini
-      dest: /etc/certbot/cloudflareAPI.ini
-
-  
+  tasks:
+    - name: Install keepalived
+      ansible.builtin.apt:
+        update_cache: true
+        name: keepalived
+    - name: Install haproxy
+      ansible.builtin.apt:
+        name: haproxy
+    - name: Install inadyn
+      ansible.builtin.apt:
+        name: inadyn
+    - name: Install certbot
+      community.general.snap:
+        name: certbot
+        classic: true
+    - name: Prepare the certbot command
+      ansible.builtin.command: ln -s /snap/bin/certbot /usr/bin/certbot
+    - name: Acknowledge warning
+      ansible.builtin.command: snap set certbot trust-plugin-with-root=ok      
+    - name: Install certbot cloudflare plugin
+      community.general.snap:
+        name: certbot-dns-cloudflare
+    - name: Configure certbot
+      ansible.builtin.copy:
+        src: ~/Documents/Cluster/certbot.conf
+        dest: /etc/letsencrypt/renewal
+    - name: Setup certbot user 
+      ansible.builtin.user:
+        name: certbot
+        group: certbot
+        home: /opt/certbot
+    - name: Add haproxy to certbot group
+      ansible.builtin.user:
+        name: haproxy
+        append: true
+        group: certbot
+    - name: Add branson to certbot group
+      ansible.builtin.user:
+        name: branson
+        append: true
+        group: certbot
+    - name: Add certbot folders
+      ansible.builtin.file:
+        state: directory
+        path: /opt/certbot
+    - name: Copy over cloudflare credentials
+      ansible.builtin.copy:
+        src: ~/Documents/Cluster/secrets/cloudflare.ini
+        dest: /etc/certbot/cloudflareAPI.ini
+    - name: Configure keepalived
+      ansible.builtin.copy:
+        src: ~/Documents/Cluster/proxys/keepalived.conf
+        dest: /etc/keepalived/keepalived.conf
+    - name: Configure haproxy
+      ansible.builtin.copy:
+        src: ~/Documents/Cluster/proxys/haproxy.cnf
+        dest: /ect/haproxy/haproxy.cnf
+    - name: Enable keepalived
+      ansible.builtin.systemd_service:
+        name: keepalived
+        enabled: true
+        state: reloaded
+    - name: Enable haproxy
+      ansible.builtin.systemd_service:
+        name: haproxy
+        enabled: true
+        state: reloaded
+    - name: cConfigure inadyn
+      ansible.builtin.copy:
+        src: ~/Documents/Cluster/proxys/inadyn.conf
+        dest: /etc/inadyn.conf
+    - name: Enable inadyn
+      ansible.builtin.systemd_service:
+        name: inadyn
+        enabled: true
+        state: reloaded
