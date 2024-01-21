@@ -18,21 +18,19 @@
       community.general.snap:
         name: certbot
         classic: true
-    - name: Prepare the certbot command
-      ansible.builtin.command: ln -s /snap/bin/certbot /usr/bin/certbot
+    - name: Setup the symbolic link
+      ansible.builtin.file:
+        src: /snap/bin/certbot
+        dest: /usr/bin/certbot
+        state: link
     - name: Acknowledge warning
-      ansible.builtin.command: snap set certbot trust-plugin-with-root=ok      
+      ansible.builtin.command: snap set certbot trust-plugin-with-root=ok
     - name: Install certbot cloudflare plugin
       community.general.snap:
         name: certbot-dns-cloudflare
-    - name: Configure certbot
-      ansible.builtin.copy:
-        src: ~/Documents/Cluster/certbot.conf
-        dest: /etc/letsencrypt/renewal
-    - name: Setup certbot user 
+    - name: Setup certbot user
       ansible.builtin.user:
         name: certbot
-        group: certbot
         home: /opt/certbot
     - name: Add haproxy to certbot group
       ansible.builtin.user:
@@ -48,18 +46,27 @@
       ansible.builtin.file:
         state: directory
         path: /opt/certbot
+        mode: ug=rx
+    - name: Configure certbot
+      ansible.builtin.copy:
+        src: ~/Documents/Cluster/certbot.conf
+        dest: /etc/letsencrypt/renewal/certbot.conf
+        mode: ug=rx
     - name: Copy over cloudflare credentials
       ansible.builtin.copy:
         src: ~/Documents/Cluster/secrets/cloudflare.ini
         dest: /etc/certbot/cloudflareAPI.ini
+        mode: ug=rx
     - name: Configure keepalived
       ansible.builtin.copy:
         src: ~/Documents/Cluster/proxys/keepalived.conf
         dest: /etc/keepalived/keepalived.conf
+        mode: ug=rx
     - name: Configure haproxy
       ansible.builtin.copy:
         src: ~/Documents/Cluster/proxys/haproxy.cnf
         dest: /ect/haproxy/haproxy.cnf
+        mode: ug=rx
     - name: Enable keepalived
       ansible.builtin.systemd_service:
         name: keepalived
@@ -70,10 +77,11 @@
         name: haproxy
         enabled: true
         state: reloaded
-    - name: cConfigure inadyn
+    - name: Configure inadyn
       ansible.builtin.copy:
         src: ~/Documents/Cluster/proxys/inadyn.conf
         dest: /etc/inadyn.conf
+        mode: ug=rx
     - name: Enable inadyn
       ansible.builtin.systemd_service:
         name: inadyn
