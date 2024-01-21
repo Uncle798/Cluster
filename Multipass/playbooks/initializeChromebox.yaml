@@ -1,0 +1,62 @@
+- name: Initialize VMs
+  hosts: vms
+  become: true
+  remote_user: branson
+  vars_files:
+    ~/Documents/Cluster/Multipass/secrets/onePassAuthToken.yaml
+  vars:
+    branson_password: "{{ lookup('community.general.onepassword',
+      'chromeboxes',
+      field='password',
+      vault='Ansible',
+      service_account_token=auth_token)
+      }}"
+  tasks:
+    - name: Fix network start delay
+      ansible.builtin.copy:
+        src: ~/Documents/Linux/systemd-networkd-wait-online.service
+        dest: /etc/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service
+        owner: root
+        mode: u=rwx,g=rx
+    - name: Set timezone
+      community.general.timezone:
+        name: America/Boise
+    - name: Change password
+      ansible.builtin.user:
+        name: branson
+        password: "{{ branson_password | password_hash('sha512') }}"
+    - name: Apt update
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: true
+    - name: Install zsh
+      ansible.builtin.apt:
+        name: zsh
+    - name: Change shell
+      ansible.builtin.user:
+        name: branson
+        shell: /bin/zsh
+    - name: Set Zsh Config
+      ansible.builtin.copy:
+        src: ~/Documents/Cluster/zshrc.conf
+        dest: /home/branson/.zshrc
+        owner: branson
+        mode: ug=rw,
+    - name: Install python
+      ansible.builtin.apt:
+        name:
+          - python3-dev
+          - python3-pip
+          - python3-setuptools
+    - name: Install theFuck
+      ansible.builtin.pip:
+        name: thefuck
+    - name: Auto remove
+      ansible.builtin.apt:
+        autoremove: true
+    - name: Reboot
+      ansible.builtin.reboot:
+        connect_timeout: 5
+        reboot_timeout: 100
+        post_reboot_delay: 30
+        test_command: uptime
