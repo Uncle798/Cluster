@@ -3,7 +3,15 @@
   hosts: all
   remote_user: branson
   become: true
-
+  vars_files:
+    ~/Documents/Cluster/Multipass/secrets/vault_vars.yaml
+  vars:
+    api_token: "{{ lookup('community.general.onepassword',
+        'Cloudflare DNS zone key',
+        field='credential',
+        vault='Ansible',
+        service_account_token=auth_token)
+        }}"
   tasks:
     - name: Install keepalived
       ansible.builtin.apt:
@@ -63,17 +71,17 @@
         mode: ug=rx
     - name: Configure certbot
       ansible.builtin.copy:
-        src: ~/Documents/Cluster/certbot.conf
+        src: ~/Documents/Cluster/Multipass/configs/certbot.conf
         dest: /etc/letsencrypt/renewal/certbot.conf
         mode: ug=rx
     - name: Copy over cloudflare credentials
-      ansible.builtin.copy:
-        src: ~/Documents/Cluster/Multipass/secrets/cloudflareAPI.ini
+      ansible.builtin.template:
+        src: ~/Documents/Cluster/Multipass/configs/cloudflareAPI.ini
         dest: /etc/certbot/cloudflareAPI.ini
         mode: ug=rx
     - name: Configure keepalived
       ansible.builtin.copy:
-        src: ~/Documents/Cluster/proxys/keepalived.conf
+        src: ~/Documents/Cluster/Multipass/configs/keepalived.conf
         dest: /etc/keepalived/keepalived.conf
         mode: ug=rx
     - name: Add haproxy folders
@@ -83,7 +91,7 @@
         mode: ug=rx
     - name: Configure haproxy
       ansible.builtin.copy:
-        src: ~/Documents/Cluster/proxys/haproxy.cnf
+        src: ~/Documents/Cluster/Multipass/configs/haproxy.cnf
         dest: /etc/haproxy/haproxy.cnf
         mode: ug=rx
     - name: Enable keepalived

@@ -1,10 +1,15 @@
 ---
+# - name: Get keys from vms
+#   hosts: myMac
+#   become: true
+#   tasks:
+#     - name: Get 
 - name: Initialize vms
-  hosts: vms
+  hosts: proxyCluster
   become: true
   remote_user: branson
   vars_files:
-    ~./secrets/onePassAuthToken.yaml
+    ~/Documents/Cluster/Multipass/secrets/vault_vars.yaml
   vars:
     branson_password: "{{ lookup('community.general.onepassword',
       'chromeboxes',
@@ -39,7 +44,7 @@
         shell: /bin/zsh
     - name: Set Zsh Config
       ansible.builtin.copy:
-        src: ~/Documents/Cluster/zshrc.conf
+        src: ~/Documents/Cluster/Multipass/configs/zshrc.conf
         dest: /home/branson/.zshrc
         owner: branson
         mode: ug=rw,
@@ -52,6 +57,24 @@
     - name: Install theFuck
       ansible.builtin.pip:
         name: thefuck
+    - name: Look for install script
+      ansible.builtin.file:
+        path: /home/branson/installOMZ.sh
+        state: absent
+      register: script_exists
+    - name: Download install OMZ script
+      ansible.builtin.uri:
+        url: https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
+        dest: /home/branson/installOMZ.sh
+        mode: ug=rwx
+      register: download_result
+      when:
+        script_exists.state: absent
+    - name: Install OMZ
+      ansible.builtin.command:
+        cmd: /home/branson/installOMZ.sh --unattended
+      when: download_result.failed is false or script_exists.state is file
+      register: script_result
     - name: Auto remove
       ansible.builtin.apt:
         autoremove: true
