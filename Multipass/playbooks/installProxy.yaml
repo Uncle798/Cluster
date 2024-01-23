@@ -1,6 +1,6 @@
 ---
 - name: Initialize proxy hosts
-  hosts: all
+  hosts: proxyCluster
   remote_user: branson
   become: true
   vars_files:
@@ -106,7 +106,7 @@
         state: reloaded
     - name: Configure inadyn
       ansible.builtin.copy:
-        src: ~/Documents/Cluster/Multipass/secrets/inadyn.conf
+        src: ~/Documents/Cluster/Multipass/configs/inadyn.conf
         dest: /etc/inadyn.conf
         mode: ug=rx
     - name: Enable inadyn
@@ -114,3 +114,9 @@
         name: inadyn
         enabled: true
         state: reloaded
+    - name: Reboot
+      ansible.builtin.reboot:
+        connect_timeout: 5
+        reboot_timeout: 600
+        post_reboot_delay: 30
+        test_command: uptime
