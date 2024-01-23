@@ -1,6 +1,6 @@
 #! /bin/zsh
-FILE_EXISTS=$(multipass list)
-if [ "$FILE_EXISTS" = "No instances found." ]; then
+INSTANCE_EXISTS=$(multipass list)
+if [ "$INSTANCE_EXISTS" = "No instances found." ]; then
     echo "None to destroy"
     exit 0
 fi
