@@ -5,12 +5,20 @@ if [ "$INSTANCE_EXISTS" != "No instances found." ]; then
     read ANSWER 
 fi
 if [ "$ANSWER" = "n" ]; then
+    echo exiting
     exit 0
 fi
 if [[ ("$INSTACE_EXISTS" != "No instances found.") &&  ("$ANSWER" == "y") ]]; then
     multipass stop --all
     multipass delete --all
     multipass purge
+fi
+echo "Debug ansible?[y/n]"
+read LOOKING_AT_THINGS
+if [ "$LOOKING_AT_THINGS" = "y" ]; then
+    LOOKING_AT_THINGS="-v"
+else
+    LOOKING_AT_THINGS=""
 fi
 echo "Hostname prefix:"
 read HOSTNAME_PREFIX
@@ -71,5 +79,8 @@ if [[ $NUM_AGENTS -gt 0 ]]; then
 fi
 multipass list
 if [ $INITIALIZE = 'y' ]; then
-ansible-playbook /Users/ericbranson/Documents/Cluster/Multipass/playbooks/initializeChromebox.yaml --vault-password-file ~/Documents/Cluster/Multipass/secrets/ansibleVaultKey -i ~/Documents/Cluster/Multipass/inventory.yaml
+    ansible-playbook /Users/ericbranson/Documents/Cluster/Multipass/playbooks/initializeChromebox.yaml\
+     --vault-password-file ~/Documents/Cluster/Multipass/secrets/ansibleVaultKey\
+      --inventory ~/Documents/Cluster/Multipass/inventory.yaml\
+      $LOOKING_AT_THINGS
 fi
