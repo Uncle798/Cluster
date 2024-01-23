@@ -1,11 +1,6 @@
 ---
-# - name: Get keys from vms
-#   hosts: myMac
-#   become: true
-#   tasks:
-#     - name: Get 
 - name: Initialize vms
-  hosts: proxyCluster
+  hosts: all
   become: true
   remote_user: branson
   vars_files:
@@ -57,30 +52,24 @@
     - name: Install theFuck
       ansible.builtin.pip:
         name: thefuck
-    - name: Look for install script
-      ansible.builtin.file:
-        path: /home/branson/installOMZ.sh
-        state: absent
-      register: script_exists
     - name: Download install OMZ script
       ansible.builtin.uri:
         url: https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
         dest: /home/branson/installOMZ.sh
         mode: ug=rwx
       register: download_result
-      when:
-        script_exists.state: absent
     - name: Install OMZ
       ansible.builtin.command:
         cmd: /home/branson/installOMZ.sh --unattended
       when: download_result.failed is false or script_exists.state is file
       register: script_result
+      changed_when: true
     - name: Auto remove
       ansible.builtin.apt:
         autoremove: true
     - name: Reboot
       ansible.builtin.reboot:
         connect_timeout: 5
-        reboot_timeout: 100
+        reboot_timeout: 600
         post_reboot_delay: 30
         test_command: uptime
