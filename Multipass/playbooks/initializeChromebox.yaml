@@ -37,12 +37,6 @@
       ansible.builtin.user:
         name: branson
         shell: /bin/zsh
-    - name: Set Zsh Config
-      ansible.builtin.copy:
-        src: ~/Documents/Cluster/Multipass/configs/zshrc.conf
-        dest: /home/branson/.zshrc
-        owner: branson
-        mode: ug=rw,
     - name: Install python
       ansible.builtin.apt:
         name:
@@ -56,14 +50,21 @@
       ansible.builtin.uri:
         url: https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
         dest: /home/branson/installOMZ.sh
+        owner: branson
         mode: ug=rwx
       register: download_result
     - name: Install OMZ
-      ansible.builtin.command:
+      ansible.builtin.shell:
         cmd: /home/branson/installOMZ.sh --unattended
       when: download_result.failed is false or script_exists.state is file
       register: script_result
-      changed_when: true
+      # changed_when: script_result
+    - name: Set Zsh Config
+      ansible.builtin.copy:
+        src: ~/Documents/Cluster/Multipass/configs/zshrc.conf
+        dest: /home/branson/.zshrc
+        owner: branson
+        mode: ug=rw,
     - name: Auto remove
       ansible.builtin.apt:
         autoremove: true

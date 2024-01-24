@@ -1,4 +1,15 @@
-#! /bin/zsh
+#!/bin/zsh/
+GET_HOSTNAME () {
+    LINES_IN_NAMES=$(wc -l /Users/ericbranson/Documents/Cluster/Multipass/scripts/names.txt | awk '{print $1}')
+    RAND_LINE="$(jot -r 1 1 $LINES_IN_NAMES)"
+    HOSTNAME_PREFIX=$(head -$RAND_LINE ~/documents/cluster/multipass/scripts/names.txt | TAIL -1)
+}
+echo "$HOSTNAME_PREFIX was chosen would you like to choose another? [y/n]"
+read GOOD_HOSTNAME
+if [ $GOOD_HOSTNAME = 'y' ]; then
+    GET_HOSTNAME
+fi
+gsed -i "$RAND_LINE"d /Users/ericbranson/Documents/Cluster/Multipass/scripts/names.txt
 INSTANCE_EXISTS=$(multipass list)
 if [ "$INSTANCE_EXISTS" != "No instances found." ]; then
     echo "There is currently a cluster running, destroy it? [y/n]"
@@ -20,8 +31,6 @@ if [ "$LOOKING_AT_THINGS" = "y" ]; then
 else
     LOOKING_AT_THINGS=""
 fi
-echo "Hostname prefix:"
-read HOSTNAME_PREFIX
 echo "How many Proxies?"
 typeset -i NUM_PROXIES NUM_CONTROL NUM_AGENTS
 read NUM_PROXIES
@@ -80,6 +89,12 @@ fi
 multipass list
 if [ $INITIALIZE = 'y' ]; then
     ansible-playbook /Users/ericbranson/Documents/Cluster/Multipass/playbooks/initializeChromebox.yaml\
+     --vault-password-file ~/Documents/Cluster/Multipass/secrets/ansibleVaultKey\
+      --inventory ~/Documents/Cluster/Multipass/inventory.yaml\
+      $LOOKING_AT_THINGS
+fi
+if [ $NUM_PROXIES -gt 0 ] && [ $INITIALIZE = 'y' ]; then
+    ansible-playbook /Users/ericbranson/Documents/Cluster/Multipass/playbooks/installProxy.yaml\
      --vault-password-file ~/Documents/Cluster/Multipass/secrets/ansibleVaultKey\
       --inventory ~/Documents/Cluster/Multipass/inventory.yaml\
       $LOOKING_AT_THINGS
