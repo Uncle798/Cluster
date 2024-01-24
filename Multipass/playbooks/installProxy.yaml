@@ -58,26 +58,25 @@
       ansible.builtin.file:
         state: directory
         path: /opt/certbot
+        owner: certbot
         mode: ug=rx
     - name: Add certbot etc folders
       ansible.builtin.file:
         state: directory
-        path: /etc/certbot
-        mode: ug=rx
-    - name: Add letsencrypt folders
-      ansible.builtin.file:
-        state: directory
-        path: /etc/letsencrypt/renewal/
+        path: /etc/certbot/renewal
+        owner: certbot
         mode: ug=rx
     - name: Configure certbot
       ansible.builtin.copy:
         src: ~/Documents/Cluster/Multipass/configs/certbot.conf
-        dest: /etc/letsencrypt/renewal/certbot.conf
+        dest: /etc/certbot/renewal/certbot.conf
+        owner: certbot
         mode: ug=rx
     - name: Copy over cloudflare credentials
       ansible.builtin.template:
         src: ~/Documents/Cluster/Multipass/configs/cloudflareAPI.ini
         dest: /etc/certbot/cloudflareAPI.ini
+        owner: certbot
         mode: ug=rx
     - name: Configure keepalived
       ansible.builtin.copy:
