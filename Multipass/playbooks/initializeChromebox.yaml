@@ -13,6 +13,12 @@
       service_account_token=auth_token)
       }}"
   tasks:
+    - name: Install log
+      ansible.builtin.file:
+        path: /home/branson/installLog.txt
+        owner: branson
+        mode: ug=rw
+        state: touch
     - name: Fix network start delay
       ansible.builtin.copy:
         src: ~/Documents/Linux/systemd-networkd-wait-online.service
@@ -55,7 +61,7 @@
       register: download_result
     - name: Install OMZ
       ansible.builtin.shell:
-        cmd: /home/branson/installOMZ.sh --unattended
+        cmd: /home/branson/installOMZ.sh --unattended >> /home/branson/installLog.txt
       when: download_result.failed is false or script_exists.state is file
       register: script_result
       # changed_when: script_result

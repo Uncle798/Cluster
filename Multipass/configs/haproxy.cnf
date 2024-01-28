@@ -1,14 +1,27 @@
 global
+    maxconn 200
+    user haproxy
+    group haproxy
+    daemon
+    cluster-secret {{ haproxy_secret }}
+    node {{ node_name }}
 
 defaults
+    mode                    http
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
 
-frontend 
+frontend k3s_control_front
+    bind {{ haproxy_vip }}:{{ k3sControl_port }}
+    default_backend k3s_control_back
 
-backend k3s_control
+backend k3s_control_back
     mode http
     balance leaseconn
-    server chromebox11 192.168.4.11 check
-    server chromebox11 192.168.4.11 check
-    server chromebox11 192.168.4.11 check
-    server chromebox11 192.168.4.11 check
-    server chromebox11 192.168.4.11 check
+    server {{ k3Control01 }} {{ k3C01_IP }}:{{ k3sControl_port }} check
+    server {{ k3Control02 }} {{ k3C02_IP }}:{{ k3sControl_port }} check
+    server {{ k3Control03 }} {{ k3C03_IP }}:{{ k3sControl_port }} check

@@ -1,15 +1,16 @@
 #!/bin/zsh/
 GET_HOSTNAME () {
-    LINES_IN_NAMES=$(wc -l /Users/ericbranson/Documents/Cluster/Multipass/scripts/names.txt | awk '{print $1}')
+    LINES_IN_NAMES=$(wc -l /Users/ericbranson/Documents/Cluster/Multipass/scripts/serverNames.txt | awk '{print $1}')
     RAND_LINE="$(jot -r 1 1 $LINES_IN_NAMES)"
-    HOSTNAME_PREFIX=$(head -$RAND_LINE ~/documents/cluster/multipass/scripts/names.txt | TAIL -1)
+    HOSTNAME_PREFIX="$(head -$RAND_LINE ~/documents/cluster/multipass/scripts/serverNames.txt | TAIL -1 | tr "[A-Z]" "[a-z]")"
+    gsed -i "$RAND_LINE"d /Users/ericbranson/Documents/Cluster/Multipass/scripts/serverNames.txt
+    echo "$HOSTNAME_PREFIX was chosen would you like to choose another? [y/n]"
+    read GOOD_HOSTNAME
+    if [ $GOOD_HOSTNAME = 'y' ]; then
+        GET_HOSTNAME
+    fi
 }
-echo "$HOSTNAME_PREFIX was chosen would you like to choose another? [y/n]"
-read GOOD_HOSTNAME
-if [ $GOOD_HOSTNAME = 'y' ]; then
-    GET_HOSTNAME
-fi
-gsed -i "$RAND_LINE"d /Users/ericbranson/Documents/Cluster/Multipass/scripts/names.txt
+GET_HOSTNAME
 INSTANCE_EXISTS=$(multipass list)
 if [ "$INSTANCE_EXISTS" != "No instances found." ]; then
     echo "There is currently a cluster running, destroy it? [y/n]"
