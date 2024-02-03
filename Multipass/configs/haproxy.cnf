@@ -15,6 +15,26 @@ defaults
     timeout client          1m
     timeout server          1m
 
+frontend http-in
+    bind {{ haproxy_vip }}:80
+    # Listen on port 443
+    # Uncomment after running certbot for the first time, a certificate
+    # needs to be installed *before* HAProxy will be able to start when this
+    # directive is not commented.
+    #
+    # bind \*:443 ssl crt /opt/certbot/haproxy_fullchains/__fallback.pem crt /opt/certbot/haproxy_fullchains
+    # Forward Certbot verification requests to the certbot-haproxy plugin
+    acl is_certbot path_beg -i /.well-known/acme-challenge
+    rspadd Strict-Transport-Security:\ max-age=31536000;\ includeSubDomains;\ preload
+    rspadd X-Frame-Options:\ DENY
+    use_backend certbot if is_certbot
+
+backend certbot
+    log global
+    mode http
+    server certbot 127.0.0.1:8000
+
+
 frontend k3s_control_front
     bind {{ haproxy_vip }}:{{ k3sControl_port }}
     default_backend k3s_control_back
@@ -22,6 +42,11 @@ frontend k3s_control_front
 backend k3s_control_back
     mode http
     balance leaseconn
+    option forwardfor
+    option http-server-close
+    option httpclose
+    http-request set-header X-Forwarded-Port %[dst_port]
+    http-request add-header X-Forwarded-Proto https if { ssl_fc }
     server {{ k3Control01 }} {{ k3C01_IP }}:{{ k3sControl_port }} check
     server {{ k3Control02 }} {{ k3C02_IP }}:{{ k3sControl_port }} check
     server {{ k3Control03 }} {{ k3C03_IP }}:{{ k3sControl_port }} check

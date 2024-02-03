@@ -32,5 +32,3 @@
         src: ~/Documents/Cluster/Multipass/configs/haproxy.cnf
         dest: /etc/haproxy/haproxy.cnf
         mode: ug=rx
-    - name: Ru
-      system

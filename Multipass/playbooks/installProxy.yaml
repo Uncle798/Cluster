@@ -44,6 +44,15 @@
       ansible.builtin.user:
         name: certbot
         home: /opt/certbot
+        state: present
+        append: true
+    - name: Certbot sudoer
+      community.general.sudoers:
+        name: certbot
+        user: certbot
+        nopassword: true
+        commands:
+          - /bin/systemctl restart haproxy
     - name: Add haproxy to certbot group
       ansible.builtin.user:
         name: haproxy
@@ -54,10 +63,16 @@
         name: branson
         groups: certbot
         append: true
-    - name: Add certbot opt folders
+    - name: Add certbot opt folder
       ansible.builtin.file:
         state: directory
-        path: /opt/certbot
+        path: /opt/certbot/config
+        owner: certbot
+        mode: ug=rx
+    - name: Add certbot opt folder
+      ansible.builtin.file:
+        state: directory
+        path: /opt/certbot/logs
         owner: certbot
         mode: ug=rx
     - name: Add certbot etc folders
@@ -69,13 +84,7 @@
     - name: Configure certbot
       ansible.builtin.copy:
         src: ~/Documents/Cluster/Multipass/configs/certbot.conf
-        dest: /etc/certbot/renewal/certbot.conf
-        owner: certbot
-        mode: ug=rx
-    - name: Copy over cloudflare credentials
-      ansible.builtin.template:
-        src: ~/Documents/Cluster/Multipass/configs/cloudflareAPI.ini
-        dest: /etc/certbot/cloudflareAPI.ini
+        dest: /opt/certbot/config/certbot.conf
         owner: certbot
         mode: ug=rx
     - name: Configure keepalived
@@ -93,6 +102,13 @@
         src: ~/Documents/Cluster/Multipass/configs/haproxy.cnf
         dest: /etc/haproxy/haproxy.cnf
         mode: ug=rx
+    - name: Generate DH params field
+      community.crypto.openssl_dhparam:
+        path: /opt/certbot/dhparams.pem
+        owner: certbot
+        group: certbot
+        mode: u=rwx, go=r
+        size: 4096
     - name: Enable keepalived
       ansible.builtin.systemd_service:
         name: keepalived
@@ -119,3 +135,4 @@
         reboot_timeout: 600
         post_reboot_delay: 30
         test_command: uptime
+
