@@ -4,7 +4,7 @@ global
     group haproxy
     daemon
     cluster-secret {{ haproxy_secret }}
-    node {{ node_name }}
+    node {{ haproxy_node_name }}
 
 defaults
     mode                    http

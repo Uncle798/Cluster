@@ -6,23 +6,32 @@
   vars_files:
     ~/Documents/Cluster/Multipass/secrets/vault_vars.yaml
   vars:
-    api_token: "{{ lookup('community.general.onepassword',
+    - haproxy_vip: 192.168.4.11
+    - k3sControl_port: 6443
+    - haproxy_node_name: "{{ ansbile_facts['nodename']  }}"
+    - api_token: "{{ lookup('community.general.onepassword',
         'Cloudflare DNS zone key',
         field='credential',
         vault='Ansible',
         service_account_token=auth_token)
         }}"
+    - keepalived_auth_pass: "{{ lookup('community.general.onepassword',
+        'keepalived haproxy pass',
+        field='credential',
+        vault='Ansible',
+        service_account_token=auth_token)
+        }}"
+    - keepalived_router_id: 21
+    - keepalived_interface: "{{ ansbile_facts['interfaces'][0] }}"
   tasks:
-    - name: Install keepalived
+    - name: Install thru apt
       ansible.builtin.apt:
         update_cache: true
-        name: keepalived
-    - name: Install haproxy
-      ansible.builtin.apt:
-        name: haproxy
-    - name: Install inadyn
-      ansible.builtin.apt:
-        name: inadyn
+        name: "{{ item }}"
+      loop:
+        - keepalived
+        - haproxy
+        - inadyn
     - name: Install certbot
       community.general.snap:
         name: certbot
@@ -63,32 +72,46 @@
         name: branson
         groups: certbot
         append: true
-    - name: Add certbot opt folder
+    - name: Add certbot config folder
       ansible.builtin.file:
         state: directory
-        path: /opt/certbot/config
+        path: /opt/certbot/"{{ item }}"
         owner: certbot
         mode: ug=rx
-    - name: Add certbot opt folder
-      ansible.builtin.file:
-        state: directory
-        path: /opt/certbot/logs
-        owner: certbot
-        mode: ug=rx
+      loop:
+        - config
+        - logs
     - name: Add certbot etc folders
       ansible.builtin.file:
         state: directory
         path: /etc/certbot/renewal
         owner: certbot
         mode: ug=rx
+    - name: Set top priority variable
+      ansible.builtin.set_fact:
+        keepalived_priority: 255
+      when: ansible_facts['nodename'] | regex('[01]') == '01'
+      run_once: true
+      register: keepalived_next_priority
+      delegate_facts: true
+      delegate_to: localhost
+    - name: Set next priority
+      serial: 1
+      ansible.builtin.set_fact:
+        keepalived_priority: {{ intem | int }}
+      register: keepalived_next_priority
+      delegate_facts: true
+      delegate_to: localhost
+      loop: '{{ range(245, 0, 10) }}'
     - name: Configure certbot
-      ansible.builtin.copy:
+      ansible.builtin.template:
         src: ~/Documents/Cluster/Multipass/configs/certbot.conf
         dest: /opt/certbot/config/certbot.conf
         owner: certbot
         mode: ug=rx
+      throttle: 1
     - name: Configure keepalived
-      ansible.builtin.copy:
+      ansible.builtin.template:
         src: ~/Documents/Cluster/Multipass/configs/keepalived.conf
         dest: /etc/keepalived/keepalived.conf
         mode: ug=rx
@@ -98,7 +121,7 @@
         path: /etc/haproxy/
         mode: ug=rx
     - name: Configure haproxy
-      ansible.builtin.copy:
+      ansible.builtin.template:
         src: ~/Documents/Cluster/Multipass/configs/haproxy.cnf
         dest: /etc/haproxy/haproxy.cnf
         mode: ug=rx
@@ -109,26 +132,20 @@
         group: certbot
         mode: u=rwx, go=r
         size: 4096
-    - name: Enable keepalived
-      ansible.builtin.systemd_service:
-        name: keepalived
-        enabled: true
-        state: reloaded
-    - name: Enable haproxy
-      ansible.builtin.systemd_service:
-        name: haproxy
-        enabled: true
-        state: reloaded
     - name: Configure inadyn
       ansible.builtin.copy:
         src: ~/Documents/Cluster/Multipass/configs/inadyn.conf
         dest: /etc/inadyn.conf
         mode: ug=rx
-    - name: Enable inadyn
+    - name: Enable everything
       ansible.builtin.systemd_service:
-        name: inadyn
+        name: "{{ item }}"
         enabled: true
         state: reloaded
+      loop:
+        - keepalived
+        - haproxy
+        - inadyn
     - name: Reboot
       ansible.builtin.reboot:
         connect_timeout: 5
