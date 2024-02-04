@@ -63,11 +63,8 @@ if [[ $NUM_PROXIES -gt 0 ]]; then
 fi
 if [[ $NUM_CONTROL -gt 0 ]]; then
     echo "k3sControlCluster:\n  hosts:" >> ~/Documents/Cluster/Multipass/inventory.yaml
-    for ((x=NUM_PROXIES+1; x<=NUM_PROXIES+NUM_CONTROL; x++)); do
+    for ((x=11; x < 11+NUM_CONTROL; x++)); do
         INSTANCE_NUMBER=$x
-        if [ $x -lt 10 ]; then
-            INSTANCE_NUMBER="0$x"
-        fi
         multipass launch -n $HOSTNAME_PREFIX$INSTANCE_NUMBER --cloud-init ~/documents/cluster/multipass/cloud-init.yaml -c 2 -m 2G -d 4G
         IP=$(multipass info $HOSTNAME_PREFIX$INSTANCE_NUMBER | grep IPv4 | awk '{print $2}')
         echo "    $HOSTNAME_PREFIX$INSTANCE_NUMBER:\n      ansible_host: $IP" >> ~/Documents/Cluster/Multipass/inventory.yaml 
@@ -76,11 +73,8 @@ if [[ $NUM_CONTROL -gt 0 ]]; then
 fi
 if [[ $NUM_AGENTS -gt 0 ]]; then
     echo "k3sAgentCluster:\n  hosts:" >> ~/Documents/Cluster/Multipass/inventory.yaml 
-    for ((x=NUM_PROXIES+NUM_CONTROL+1; x<=NUM_INSTANCES; x++)); do
+    for ((x=21; x < 21+NUM_AGENTS; x++)); do
         INSTANCE_NUMBER=$x
-        if [ $x -lt 10 ]; then
-            INSTANCE_NUMBER="0$x"
-        fi
         multipass launch -n $HOSTNAME_PREFIX$INSTANCE_NUMBER --cloud-init ~/documents/cluster/multipass/cloud-init.yaml -c 2 -m 2G -d 4G
         IP=$(multipass info $HOSTNAME_PREFIX$INSTANCE_NUMBER | grep IPv4 | awk '{print $2}')
         echo "    $HOSTNAME_PREFIX$INSTANCE_NUMBER:\n      ansible_host: $IP" >> ~/Documents/Cluster/Multipass/inventory.yaml 
@@ -88,13 +82,13 @@ if [[ $NUM_AGENTS -gt 0 ]]; then
     done
 fi
 multipass list
-if [ $INITIALIZE = 'y' ]; then
+if [ "$INITIALIZE" = 'y' ]; then
     ansible-playbook /Users/ericbranson/Documents/Cluster/Multipass/playbooks/initializeChromebox.yaml\
      --vault-password-file ~/Documents/Cluster/Multipass/secrets/ansibleVaultKey\
       --inventory ~/Documents/Cluster/Multipass/inventory.yaml\
       $LOOKING_AT_THINGS
 fi
-if [ $NUM_PROXIES -gt 0 ] && [ $INITIALIZE = 'y' ]; then
+if [ $NUM_PROXIES -gt 0 ] && [ "$INITIALIZE" = 'y' ]; then
     ansible-playbook /Users/ericbranson/Documents/Cluster/Multipass/playbooks/installProxy.yaml\
      --vault-password-file ~/Documents/Cluster/Multipass/secrets/ansibleVaultKey\
       --inventory ~/Documents/Cluster/Multipass/inventory.yaml\
