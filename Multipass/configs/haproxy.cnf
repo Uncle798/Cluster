@@ -1,3 +1,4 @@
+
 global
     maxconn 200
     user haproxy
@@ -17,6 +18,7 @@ defaults
 
 frontend http-in
     bind {{ haproxy_vip }}:80
+{% raw %}
     # Listen on port 443
     # Uncomment after running certbot for the first time, a certificate
     # needs to be installed *before* HAProxy will be able to start when this
@@ -36,9 +38,10 @@ backend certbot
 
 
 frontend k3s_control_front
+{% endraw%}
     bind {{ haproxy_vip }}:{{ k3sControl_port }}
+{% raw %}
     default_backend k3s_control_back
-
 backend k3s_control_back
     mode http
     balance leaseconn
@@ -47,6 +50,7 @@ backend k3s_control_back
     option httpclose
     http-request set-header X-Forwarded-Port %[dst_port]
     http-request add-header X-Forwarded-Proto https if { ssl_fc }
-    server {{ k3Control01 }} {{ k3C01_IP }}:{{ k3sControl_port }} check
-    server {{ k3Control02 }} {{ k3C02_IP }}:{{ k3sControl_port }} check
-    server {{ k3Control03 }} {{ k3C03_IP }}:{{ k3sControl_port }} check
+{% endraw %}
+    {% for host in groups['k3sControlCluster'] %}
+        server {{ host.hostname }} {{ host.ansible_host }}:{{ k3sControl_port }} check
+    {% endfor %}

@@ -5,25 +5,14 @@
   become: true
   vars_files:
     ~/Documents/Cluster/Multipass/secrets/vault_vars.yaml
-  vars:
-    - haproxy_vip: 192.168.4.11
-    - k3sControl_port: 6443
-    - haproxy_node_name: "{{ ansbile_facts['nodename']  }}"
-    - api_token: "{{ lookup('community.general.onepassword',
-        'Cloudflare DNS zone key',
-        field='credential',
-        vault='Ansible',
-        service_account_token=auth_token)
-        }}"
-    - keepalived_auth_pass: "{{ lookup('community.general.onepassword',
-        'keepalived haproxy pass',
-        field='credential',
-        vault='Ansible',
-        service_account_token=auth_token)
-        }}"
-    - keepalived_router_id: 21
-    - keepalived_interface: "{{ ansbile_facts['interfaces'][0] }}"
   tasks:
+    - name: Get all interface names
+      ansible.builtin.command: 
+        cmd: sudo lshw -class network -json
+      register: network_interfaces
+    - name: Debug
+      ansible.builtin.debug:
+        var: network_interfaces
     - name: Install thru apt
       ansible.builtin.apt:
         update_cache: true
@@ -54,7 +43,6 @@
         name: certbot
         home: /opt/certbot
         state: present
-        append: true
     - name: Certbot sudoer
       community.general.sudoers:
         name: certbot
@@ -75,7 +63,7 @@
     - name: Add certbot config folder
       ansible.builtin.file:
         state: directory
-        path: /opt/certbot/"{{ item }}"
+        path: "/opt/certbot/{{ item }}"
         owner: certbot
         mode: ug=rx
       loop:
@@ -87,29 +75,12 @@
         path: /etc/certbot/renewal
         owner: certbot
         mode: ug=rx
-    - name: Set top priority variable
-      ansible.builtin.set_fact:
-        keepalived_priority: 255
-      when: ansible_facts['nodename'] | regex('[01]') == '01'
-      run_once: true
-      register: keepalived_next_priority
-      delegate_facts: true
-      delegate_to: localhost
-    - name: Set next priority
-      serial: 1
-      ansible.builtin.set_fact:
-        keepalived_priority: {{ intem | int }}
-      register: keepalived_next_priority
-      delegate_facts: true
-      delegate_to: localhost
-      loop: '{{ range(245, 0, 10) }}'
     - name: Configure certbot
       ansible.builtin.template:
-        src: ~/Documents/Cluster/Multipass/configs/certbot.conf
+        src: ~/Documents/Cluster/Multipass/configs/certbot-initial.conf
         dest: /opt/certbot/config/certbot.conf
         owner: certbot
         mode: ug=rx
-      throttle: 1
     - name: Configure keepalived
       ansible.builtin.template:
         src: ~/Documents/Cluster/Multipass/configs/keepalived.conf
@@ -152,4 +123,4 @@
         reboot_timeout: 600
         post_reboot_delay: 30
         test_command: uptime
-
+...

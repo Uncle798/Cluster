@@ -13,12 +13,6 @@
       service_account_token=auth_token)
       }}"
   tasks:
-    - name: Install log
-      ansible.builtin.file:
-        path: /home/branson/installLog.txt
-        owner: branson
-        mode: ug=rw
-        state: touch
     - name: Fix network start delay
       ansible.builtin.copy:
         src: ~/Documents/Linux/systemd-networkd-wait-online.service
@@ -32,26 +26,22 @@
       ansible.builtin.user:
         name: branson
         password: "{{ branson_password | password_hash('sha512') }}"
-    - name: Apt update
+    - name: Install thru apt
       ansible.builtin.apt:
         update_cache: true
         upgrade: true
-    - name: Install zsh
-      ansible.builtin.apt:
-        name: zsh
-    - name: Change shell
-      ansible.builtin.user:
-        name: branson
-        shell: /bin/zsh
-    - name: Install python
-      ansible.builtin.apt:
         name:
+          - zsh
           - python3-dev
           - python3-pip
           - python3-setuptools
     - name: Install theFuck
       ansible.builtin.pip:
         name: thefuck
+    - name: Change shell
+      ansible.builtin.user:
+        name: branson
+        shell: /bin/zsh
     - name: Download install OMZ script
       ansible.builtin.uri:
         url: https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
@@ -60,11 +50,10 @@
         mode: ug=rwx
       register: download_result
     - name: Install OMZ
-      ansible.builtin.shell:
-        cmd: /home/branson/installOMZ.sh --unattended >> /home/branson/installLog.txt
+      ansible.builtin.command:
+        cmd: /home/branson/installOMZ.sh --unattended
+        creates: /home/branson/installLog.txt
       when: download_result.failed is false or script_exists.state is file
-      register: script_result
-      # changed_when: script_result
     - name: Set Zsh Config
       ansible.builtin.copy:
         src: ~/Documents/Cluster/Multipass/configs/zshrc.conf
