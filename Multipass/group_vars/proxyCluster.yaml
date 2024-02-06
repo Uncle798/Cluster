@@ -23,4 +23,3 @@ keepalived_auth_pass: >
   service_account_token=auth_token)
   }}"
 keepalived_router_id: 21
-keepalived_interface: "{{ ansible_facts['interfaces'] }}"

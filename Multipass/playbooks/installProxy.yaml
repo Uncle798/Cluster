@@ -93,7 +93,7 @@
         mode: ug=rx
     - name: Configure haproxy
       ansible.builtin.template:
-        src: ~/Documents/Cluster/Multipass/configs/haproxy.cnf
+        src: ~/Documents/Cluster/Multipass/configs/haproxy.conf
         dest: /etc/haproxy/haproxy.cnf
         mode: ug=rx
     - name: Generate DH params field
