@@ -4,7 +4,7 @@
   become: true
   vars_files:
     ~/Documents/Cluster/Multipass/secrets/vault_vars.yaml
-  vars:
+  vars: |
     api_token: "{{ lookup('community.general.onepassword',
         'Cloudflare DNS zone key',
         field='credential',

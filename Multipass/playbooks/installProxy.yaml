@@ -3,11 +3,11 @@
   hosts: proxyCluster
   remote_user: branson
   become: true
-  vars_files:
+  vars_files: |
     ~/Documents/Cluster/Multipass/secrets/vault_vars.yaml
   tasks:
     - name: Get all interface names
-      ansible.builtin.command: 
+      ansible.builtin.command:
         cmd: sudo lshw -class network -json
       register: network_interfaces
     - name: Debug

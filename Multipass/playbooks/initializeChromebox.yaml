@@ -5,7 +5,7 @@
   remote_user: branson
   vars_files:
     ~/Documents/Cluster/Multipass/secrets/vault_vars.yaml
-  vars:
+  vars: |
     branson_password: "{{ lookup('community.general.onepassword',
       'chromeboxes',
       field='password',
