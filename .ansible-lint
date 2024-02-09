@@ -1,7 +1,7 @@
 ---
 # .ansible-lint
 
-profile: safety # min, basic, moderate,safety, shared, production
+profile: moderate # min, basic, moderate,safety, shared, production
 
 # Allows dumping of results in SARIF format
 # sarif_file: result.sarif
@@ -89,9 +89,9 @@ offline: true
 # Define required Ansible's variables to satisfy syntax check
 extra_vars:
   foo: bar
-  multiline_string_variable: |
+  {# multiline_string_variable: |
     line1
-    line2
+    line2 #}
   complex_variable: ":{;\t$()"
 
 # Uncomment to enforce action validation with tasks, usually is not
