@@ -61,24 +61,30 @@
         - uuid-dev
         - libgcrypt-dev
         - xxd
+    - name: Check if reboot required 2
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: reboot_required_file
+    - name: Reboot if required 2
+      ansible.builtin.reboot:
+      when: reboot_required_file.stat.exists == true
     - name: Clone nqptp
       ansible.builtin.git:
-        clone: https://github.com/mikebrady/nqptp.git
+        repo: https://github.com/mikebrady/nqptp.git
+        clone: true
         dest: /home/branson/nqptp
-    - name: autoreconf
+    - name: Nqptp autoreconf 
       ansible.builtin.command:
         chdir: /home/branson/nqptp
         cmd: "{{ item }}"
       loop:
         - autoreconf -fi
         - ./configure --with-systemd-startup
-    - name: Make nqptp
-      community.general.make:
-        chdir: /home/branson/nqptp
+        - make
     - name: Install nqptp
-      community.general.make:
+      ansible.builtin.command:
+        cmd: make install
         chdir: /home/branson/nqptp
-        target: Install
       become: true
     - name: Enable nqptp
       ansible.builtin.systemd_service:
@@ -87,28 +93,22 @@
         enabled: true
     - name: Clone shairport-sync
       ansible.builtin.git:
-        clone: https://github.com/mikebrady/shairport-sync.git
+        repo: https://github.com/mikebrady/shairport-sync.git
+        clone: true
         dest: /home/branson/shairport-sync
-    - name: autoreconf
+    - name: Shairport-sync autoreconf
       ansible.builtin.command:
         chdir: /home/branson/shairport-sync
         cmd: "{{ item }}"
       loop:
         - autoreconf -fi
         - ./configure --sysconfdir=/etc --with-alsa --with-soxr --with-avahi --with-ssl=openssl --with-systemd --with-airplay-2
-    - name: Make shairport-sync
-      community.general.make:
-        chdir: /home/branson/shairport-sync
+        - make
     - name: Install shairport-sync
-      community.general.make:
+      ansible.builtin.command:
         chdir: /home/branson/shairport-sync
-        target: Install
+        cmd: make install
       become: true
-    - name: Enable shairport-sync
-      ansible.builtin.systemd_service:
-        name: shairport-sync
-        state: reloaded
-        enabled: true
     - name: Make scripts dir
       ansible.builtin.file:
         state: directory
@@ -117,7 +117,7 @@
         mode: ugo=rwx
     - name: Make log file
       ansible.builtin.file:
-        state: present
+        state: touch
         path: /home/branson/shairport-sync/log.log
         owner: branson
         mode: ugo=rw
@@ -128,19 +128,25 @@
         mode: ugo=rw
     - name: Copy over relay on script
       ansible.builtin.copy:
-        src: /Users/ericbranson/Documents/Cluster/arm boards/scripts/kitchenStereoRelayOn.sh
+        src: /Users/ericbranson/Documents/Cluster/armBoards/scripts/kitchenStereoRelayOn.sh
         dest: /home/branson/scripts/speakerRelayOn.sh
         mode: ugo=rwx
         owner: branson
     - name: Copy over relay off script
       ansible.builtin.copy:
-        src: /Users/ericbranson/Documents/Cluster/arm boards/scripts/kitchenStereoRelayOff.sh
+        src: /Users/ericbranson/Documents/Cluster/armBoards/scripts/kitchenStereoRelayOff.sh
         dest: /home/branson/scripts/speakerRelayOff.sh
         mode: ugo=rwx
         owner: branson
+    - name: Enable shairport-sync
+      ansible.builtin.systemd_service:
+        name: shairport-sync
+        state: reloaded
+        enabled: true
     - name: Clone wiringOP
       ansible.builtin.git:
-        clone: https://github.com/orangepi-xunlong/wiringOP.git
+        repo: https://github.com/orangepi-xunlong/wiringOP.git
+        clone: true
         dest: /home/branson/wiringOP
     - name: Build wiringOP
       ansible.builtin.command:
