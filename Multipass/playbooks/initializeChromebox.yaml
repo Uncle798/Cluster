@@ -3,9 +3,8 @@
   hosts: all
   become: true
   remote_user: branson
-  vars_files:
-    ~/Documents/Cluster/Multipass/secrets/vault_vars.yaml
-  vars: >
+  vars_files: /Users/ericbranson/Documents/Cluster/Multipass/secrets/vault_vars.yaml
+  vars: 
     branson_password: "{{ lookup('community.general.onepassword',
       'chromeboxes',
       field='password',
@@ -13,6 +12,11 @@
       service_account_token=auth_token)
       }}"
   tasks:
+    # - name: Add mac known hosts
+    #   ansible.builtin.known_hosts:
+    #     key: /Users/ericbranson/.ssh/id_rsa.pub
+    #     name: ericsMac
+    #     state: present
     - name: Fix network start delay
       ansible.builtin.copy:
         src: ~/Documents/Linux/systemd-networkd-wait-online.service
@@ -26,11 +30,19 @@
       ansible.builtin.user:
         name: branson
         password: "{{ branson_password | password_hash('sha512') }}"
-    - name: Install thru apt
+    - name: Branson sudoer
+      community.general.sudoers:
+        name: branson
+        user: branson
+        nopassword: true
+    - name: Update apt
       ansible.builtin.apt:
         update_cache: true
         upgrade: true
-        name:
+    - name: Install thru apt
+      ansible.builtin.apt:
+        name: "{{ item }}"
+      loop: 
           - zsh
           - python3-dev
           - python3-pip
@@ -38,28 +50,19 @@
     - name: Install theFuck
       ansible.builtin.pip:
         name: thefuck
-    - name: Change shell
-      ansible.builtin.user:
-        name: branson
-        shell: /bin/zsh
-    - name: Download install OMZ script
-      ansible.builtin.uri:
-        url: https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
-        dest: /home/branson/installOMZ.sh
-        owner: branson
-        mode: ug=rwx
-      register: download_result
-    - name: Install OMZ
-      ansible.builtin.command:
-        cmd: /home/branson/installOMZ.sh --unattended
-        creates: /home/branson/installLog.txt
-      when: download_result.failed is false or script_exists.state is file
+    - name: Run script
+      ansible.builtin.script: 
+        cmd: /Users/ericbranson/Documents/Cluster/Multipass/scripts/installOMZ.sh --unattended
     - name: Set Zsh Config
       ansible.builtin.copy:
         src: ~/Documents/Cluster/Multipass/configs/zshrc.conf
         dest: /home/branson/.zshrc
         owner: branson
         mode: ug=rw,
+    - name: Change shell
+      ansible.builtin.user:
+        name: branson
+        shell: /bin/zsh
     - name: Auto remove
       ansible.builtin.apt:
         autoremove: true

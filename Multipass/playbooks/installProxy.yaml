@@ -3,8 +3,8 @@
   hosts: proxyCluster
   remote_user: branson
   become: true
-  vars_files: |
-    ~/Documents/Cluster/Multipass/secrets/vault_vars.yaml
+  vars_files: 
+    /Users/ericbranson/Documents/Cluster/Multipass/secrets/vault_vars.yaml
   tasks:
     - name: Get all interface names
       ansible.builtin.command:
@@ -33,8 +33,6 @@
     - name: Acknowledge warning
       ansible.builtin.command: snap set certbot trust-plugin-with-root=ok
       register: output
-      changed_when: output.msg.changed is true
-      failed_when: output.msg.failed is true
     - name: Install certbot cloudflare plugin
       community.general.snap:
         name: certbot-dns-cloudflare
@@ -60,7 +58,7 @@
         name: branson
         groups: certbot
         append: true
-    - name: Add certbot config folder
+    - name: Add certbot opt folders
       ansible.builtin.file:
         state: directory
         path: "/opt/certbot/{{ item }}"
