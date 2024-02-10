@@ -12,11 +12,6 @@
       service_account_token=auth_token)
       }}"
   tasks:
-    # - name: Add mac known hosts
-    #   ansible.builtin.known_hosts:
-    #     key: /Users/ericbranson/.ssh/id_rsa.pub
-    #     name: ericsMac
-    #     state: present
     - name: Fix network start delay
       ansible.builtin.copy:
         src: ~/Documents/Linux/systemd-networkd-wait-online.service
@@ -35,6 +30,8 @@
         name: branson
         user: branson
         nopassword: true
+        commands:
+          - ALL
     - name: Update apt
       ansible.builtin.apt:
         update_cache: true
