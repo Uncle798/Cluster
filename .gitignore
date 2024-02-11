@@ -3,6 +3,5 @@
 secrets
 
 Multipass/inventory.yaml
-Multipass/scripts/names.txt
 Multipass/scripts/serverNames.txt
 Multipass/log.txt

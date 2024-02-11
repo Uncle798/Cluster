@@ -13,6 +13,9 @@
       service_account_token=auth_token)
       }}"
   tasks:
+    - name: Set hostname 
+      ansible.builtin.hostname:
+      name: kitchenStereo # required. Name of the host
     - name: Set timezone
       community.general.timezone:
         name: America/Boise
