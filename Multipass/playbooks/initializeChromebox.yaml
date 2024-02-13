@@ -47,7 +47,7 @@
     - name: Install theFuck
       ansible.builtin.pip:
         name: thefuck
-    - name: Run script
+    - name: Run omzInstall script
       ansible.builtin.script: 
         cmd: /Users/ericbranson/Documents/Cluster/Multipass/scripts/installOMZ.sh --unattended
     - name: Set Zsh Config

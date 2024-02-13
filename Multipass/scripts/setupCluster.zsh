@@ -81,6 +81,7 @@ if [[ $NUM_AGENTS -gt 0 ]]; then
         ssh-keyscan $IP >> ~/.ssh/known_hosts
     done
 fi
+
 multipass list
 if [ "$INITIALIZE" = 'y' ]; then
     ansible-playbook /Users/ericbranson/Documents/Cluster/Multipass/playbooks/initializeChromebox.yaml\

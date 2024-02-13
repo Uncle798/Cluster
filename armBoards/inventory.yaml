@@ -1,4 +1,10 @@
 armBoards:
   hosts:
     kitchenStereo:
+      ansible_host: 192.168.4.12
+ericsMac:
+  hosts:
+    ericsMac:
       ansible_host: 192.168.1.51
+      become_user: ericbranson
+      become_pass: "{{ mac_password }}"
