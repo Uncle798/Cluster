@@ -69,11 +69,18 @@
         - python3-pip
         - python3-setuptools
         - python3-bcrypt
+    - name: Download install script
+      ansible.builtin.command:
+        cmd: wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
+        creates: /home/branson/install.sh
+      become: true
+      become_user: branson
     - name: Run omzInstall script
-      ansible.builtin.script: 
-        cmd: /Users/ericbranson/Documents/Cluster/Multipass/scripts/installOMZ.sh --unattended
-        creates:  /home/branson/.oh-my-zsh
-      become: false
+      ansible.builtin.command:
+        cmd: sh /home/branson/install.sh --unattended
+        creates: /home/branson/.oh-my-zsh/oh-my-zsh.sh
+      become: true
+      become_user: branson
     - name: Set Zsh Config
       ansible.builtin.copy:
         src: ~/Documents/Cluster/Multipass/configs/zshrc.conf
