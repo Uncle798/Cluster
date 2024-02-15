@@ -3,7 +3,8 @@
   hosts: all
   become: true
   remote_user: branson
-  vars_files: /Users/ericbranson/Documents/Cluster/Multipass/secrets/vault_vars.yaml
+  vars_files: 
+    /Users/ericbranson/Documents/Cluster/secrets/vault_vars.yaml
   vars: 
     branson_password: "{{ lookup('community.general.onepassword',
       'chromeboxes',
@@ -41,15 +42,25 @@
         name: "{{ item }}"
       loop: 
           - zsh
-          - python3-dev
+          - python3-full
           - python3-pip
           - python3-setuptools
-    - name: Install theFuck
-      ansible.builtin.pip:
-        name: thefuck
+          - thefuck
+    # - name: Install theFuck
+    #   ansible.builtin.command:
+    #     cmd: pip3 install thefuck --user
+    - name: Download install script
+      ansible.builtin.command:
+        cmd: wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
+        creates: /home/branson/install.sh
+      become: true
+      become_user: branson
     - name: Run omzInstall script
-      ansible.builtin.script: 
-        cmd: /Users/ericbranson/Documents/Cluster/Multipass/scripts/installOMZ.sh --unattended
+      ansible.builtin.command:
+        cmd: sh /home/branson/install.sh --unattended
+        creates: /home/branson/.oh-my-zsh/oh-my-zsh.sh
+      become: true
+      become_user: branson
     - name: Set Zsh Config
       ansible.builtin.copy:
         src: ~/Documents/Cluster/Multipass/configs/zshrc.conf
