@@ -1,22 +1,19 @@
 haproxy_vip: 192.168.4.11
 k3sControl_port: 6443
 haproxy_node_name: "{{ ansible_facts['hostname'] }}"
-haproxy_secret: >
-  "{{ lookup('community.general.onepassword',
+haproxy_secret: "{{ lookup('community.general.onepassword',
   'haproxy cluster secret',
   field='credential',
   vault='Ansible',
   service_account_token=auth_token)
   }}"
-api_token: >
-  "{{ lookup('community.general.onepassword',
+api_token:  "{{ lookup('community.general.onepassword',
   'Cloudflare DNS zone key',
   field='credential',
   vault='Ansible',
   service_account_token=auth_token)
   }}"
-keepalived_auth_pass: >
-  "{{ lookup('community.general.onepassword',
+keepalived_auth_pass: "{{ lookup('community.general.onepassword',
   'keepalived haproxy pass',
   field='credential',
   vault='Ansible',

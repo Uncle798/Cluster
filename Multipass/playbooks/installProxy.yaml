@@ -4,15 +4,52 @@
   remote_user: branson
   become: true
   vars_files: 
-    /Users/ericbranson/Documents/Cluster/Multipass/secrets/vault_vars.yaml
+    /Users/ericbranson/Documents/Cluster/secrets/vault_vars.yaml
+  vars:
+    interfaces: "{{ interface_facts.ansible_facts.ansible_interfaces | reject('==', 'lo') }}"
+    ether_interfaces: "{{ interface_facts | to_json | from_json | community.general.json_query(ether_interface_query) }}"
+    ether_interface_query: "ansible_facts.ansible_interfaces[?starts_with(@, 'en')]"
+    host_index: groups['all'].index(inventory_hostname)
+    priority_eth: "{{ 255 - (5 * host_index) - (ether_interfaces | length) }}"
+    wireless_interfaces: "{{ interface_facts | to_json | from_json | community.general.json_query(wireless_interface_query) }}"
+    wireless_interface_query: "ansible_facts.ansible_interfaces[?starts_with(@, 'Dwl')]" # Dummy
+    priority_wireless: "{{ 155 - (5 * host_index) - (wireless_interfaces|length) }}"
+    Dether_interfaces: "{{ interface_facts | to_json | from_json | community.general.json_query(Dether_interface_query) }}"
+    Dether_interface_query: "ansible_facts.ansible_interfaces[?starts_with(@, 'Den')]" # Dummy
+    priority_Dether: "{{ 55 - (5 * host_index) - ( Dether_interfaces | length ) }}"
   tasks:
-    - name: Get all interface names
+    - name: Look for network interfaces
+      ansible.builtin.setup:
+        gather_subset:
+          - network
+      register: network_facts
+    - name: Add dummy network interfaces
+      become: true
       ansible.builtin.command:
-        cmd: sudo lshw -class network -json
-      register: network_interfaces
-    - name: Debug
-      ansible.builtin.debug:
-        var: network_interfaces
+        cmd: ip link add {{ item }} type dummy
+      loop:
+        - Den01
+        - Dwl01
+      when: item not in network_facts.ansible_facts.ansible_interfaces
+      register: dummy_networks
+    - name: Set dummy interfaces up
+      ansible.builtin.command:
+        cmd: ip link set dev {{ item }} up
+      loop: 
+        - Den01
+        - Dwl01
+      when: item in dummy_networks
+    - name: Save facts
+      ansible.builtin.copy:
+        content: "{{ ansible_facts | to_nice_yaml }}"
+        dest: /Users/ericbranson/Documents/Cluster/Multipass/facts.yaml
+      when: inventory_hostname == "iras01"
+      delegate_to: localhost
+      delegate_facts: true
+      become_user: ericbranson
+      become: true
+      vars:
+        ansible_become_pass: "{{ lookup( 'community.general.onepassword', 'macMini', field='password', vault='Ansible', service_account_token=auth_token) }}"
     - name: Install thru apt
       ansible.builtin.apt:
         update_cache: true
@@ -79,11 +116,17 @@
         dest: /opt/certbot/config/certbot.conf
         owner: certbot
         mode: ug=rx
-    - name: Configure keepalived
+    - name: Gather facts about network interfaces
+      ansible.builtin.setup:
+        gather_subset: network
+      register: interface_facts
+    - name: Interface facts
+      ansible.builtin.debug:
+        msg: "{{ interfaces }}"
+    - name: Create keepalived conf file
       ansible.builtin.template:
-        src: ~/Documents/Cluster/Multipass/configs/keepalived.conf
+        src: /Users/ericbranson/Documents/Cluster/Multipass/configs/keepalived.conf
         dest: /etc/keepalived/keepalived.conf
-        mode: ug=rx
     - name: Add haproxy folders
       ansible.builtin.file:
         state: directory

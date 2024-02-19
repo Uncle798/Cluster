@@ -1,8 +1,14 @@
 armBoards:
   hosts:
-    kitchenStereo:
-      ansible_host: 192.168.4.12
-ericsMac:
+    kitchenStereo.local:
+      ansible_host: 192.168.1.14
+      ansible_ssh_pass: "{{ lookup('community.general.onepassword',
+        'music pi',
+        field='password',
+        vault='Ansible',
+        service_account_token=auth_token)
+        }}"
+myMac:
   hosts:
     ericsMac:
       ansible_host: 192.168.1.51
