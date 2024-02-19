@@ -85,13 +85,9 @@ fi
 multipass list
 if [ "$INITIALIZE" = 'y' ]; then
     ansible-playbook /Users/ericbranson/Documents/Cluster/Multipass/playbooks/initializeChromebox.yaml\
-     --vault-password-file ~/Documents/Cluster/Multipass/secrets/ansibleVaultKey\
-      --inventory ~/Documents/Cluster/Multipass/inventory.yaml\
       $LOOKING_AT_THINGS
 fi
 if [ $NUM_PROXIES -gt 0 ] && [ "$INITIALIZE" = 'y' ]; then
     ansible-playbook /Users/ericbranson/Documents/Cluster/Multipass/playbooks/installProxy.yaml\
-     --vault-password-file ~/Documents/Cluster/Multipass/secrets/ansibleVaultKey\
-      --inventory ~/Documents/Cluster/Multipass/inventory.yaml\
       $LOOKING_AT_THINGS
 fi
