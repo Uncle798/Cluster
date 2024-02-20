@@ -6,17 +6,7 @@
   vars_files: 
     /Users/ericbranson/Documents/Cluster/secrets/vault_vars.yaml
   vars:
-    interfaces: "{{ interface_facts.ansible_facts.ansible_interfaces | reject('==', 'lo') }}"
-    ether_interfaces: "{{ interface_facts | to_json | from_json | community.general.json_query(ether_interface_query) }}"
-    ether_interface_query: "ansible_facts.ansible_interfaces[?starts_with(@, 'en')]"
-    host_index: groups['all'].index(inventory_hostname)
-    priority_eth: "{{ 255 - (5 * host_index) - (ether_interfaces | length) }}"
-    wireless_interfaces: "{{ interface_facts | to_json | from_json | community.general.json_query(wireless_interface_query) }}"
-    wireless_interface_query: "ansible_facts.ansible_interfaces[?starts_with(@, 'Dwl')]" # Dummy
-    priority_wireless: "{{ 155 - (5 * host_index) - (wireless_interfaces|length) }}"
-    Dether_interfaces: "{{ interface_facts | to_json | from_json | community.general.json_query(Dether_interface_query) }}"
-    Dether_interface_query: "ansible_facts.ansible_interfaces[?starts_with(@, 'Den')]" # Dummy
-    priority_Dether: "{{ 55 - (5 * host_index) - ( Dether_interfaces | length ) }}"
+
   tasks:
     - name: Look for network interfaces
       ansible.builtin.setup:
@@ -120,9 +110,6 @@
       ansible.builtin.setup:
         gather_subset: network
       register: interface_facts
-    - name: Interface facts
-      ansible.builtin.debug:
-        msg: "{{ interfaces }}"
     - name: Create keepalived conf file
       ansible.builtin.template:
         src: /Users/ericbranson/Documents/Cluster/Multipass/configs/keepalived.conf
@@ -132,6 +119,9 @@
         state: directory
         path: /etc/haproxy/
         mode: ug=rx
+    - name: Print vars`
+      ansible.builtin.debug:
+        msg: "{{ (wireless_num_interfaces) | type_debug }}"
     - name: Configure haproxy
       ansible.builtin.template:
         src: ~/Documents/Cluster/Multipass/configs/haproxy.conf

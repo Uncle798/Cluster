@@ -1,5 +1,8 @@
-haproxy_vip: 192.168.4.11
+host_index: "{{ groups['all'].index(inventory_hostname)  * 5 }}"
+
 k3sControl_port: 6443
+
+haproxy_vip: 192.168.4.11
 haproxy_node_name: "{{ ansible_facts['hostname'] }}"
 haproxy_secret: "{{ lookup('community.general.onepassword',
   'haproxy cluster secret',
@@ -13,10 +16,26 @@ api_token:  "{{ lookup('community.general.onepassword',
   vault='Ansible',
   service_account_token=auth_token)
   }}"
+
+
 keepalived_auth_pass: "{{ lookup('community.general.onepassword',
   'keepalived haproxy pass',
   field='credential',
   vault='Ansible',
   service_account_token=auth_token)
   }}"
+
 keepalived_router_id: 21
+
+interfaces: "{{ ansible_facts.interfaces | reject('equalto', 'lo') }}"
+ether_interfaces: "{{ ansible_facts.interfaces | select('match', 'en.*') | list  }}"
+ether_num_interfaces: "{{ ether_interfaces | length }}"
+priority_eth: "{{ 255 - (host_index | int) - (ether_num_interfaces | int) }}"
+#  CURRENTLY DUMMY WIRELESS INTERFACES !!!!!!!
+wireless_interfaces: "{{ ansible_facts.interfaces | select('match', 'Dwl.*') | list }}"
+wireless_num_interfaces: "{{ (wireless_interfaces | length ) }}"
+priority_wireless: "{{ 155 - (host_index | int) - (wireless_num_interfaces | int) }}"
+
+Dether_interfaces: "{{ ansible_facts.interfaces | select('match', 'Den.*') | list }}"
+Dether_num_interfaces: "{{ Dether_interfaces | length }}"
+priority_Dether: "{{ 55 - (host_index | int) - (Dether_num_interfaces | int) }}"
