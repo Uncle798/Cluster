@@ -112,16 +112,16 @@
       register: interface_facts
     - name: Create keepalived conf file
       ansible.builtin.template:
-        src: /Users/ericbranson/Documents/Cluster/Multipass/configs/keepalived.conf
+        src: /Users/ericbranson/Documents/Cluster/Multipass/configs/keepalived_proxy.conf.j2
         dest: /etc/keepalived/keepalived.conf
     - name: Add haproxy folders
       ansible.builtin.file:
         state: directory
         path: /etc/haproxy/
         mode: ug=rx
-    - name: Print vars`
+    - name: Print vars
       ansible.builtin.debug:
-        msg: "{{ (wireless_num_interfaces) | type_debug }}"
+        msg: "{{ k3sControl }}"
     - name: Configure haproxy
       ansible.builtin.template:
         src: ~/Documents/Cluster/Multipass/configs/haproxy.conf
