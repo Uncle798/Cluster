@@ -33,6 +33,9 @@
         nopassword: true
         commands:
           - ALL
+    - name: Set FQDN
+      ansible.builtin.hostname:
+        name: "{{ inventory_hostname }}.bransonschlegel.com"
     - name: Update apt
       ansible.builtin.apt:
         update_cache: true
@@ -46,16 +49,13 @@
           - python3-pip
           - python3-setuptools
           - thefuck
-    # - name: Install theFuck
-    #   ansible.builtin.command:
-    #     cmd: pip3 install thefuck --user
-    - name: Download install script
+    - name: Download omz install script
       ansible.builtin.command:
         cmd: wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
         creates: /home/branson/install.sh
       become: true
       become_user: branson
-    - name: Run omzInstall script
+    - name: Run omz install script
       ansible.builtin.command:
         cmd: sh /home/branson/install.sh --unattended
         creates: /home/branson/.oh-my-zsh/oh-my-zsh.sh

@@ -5,14 +5,7 @@
   become: true
   vars_files: 
     /Users/ericbranson/Documents/Cluster/secrets/vault_vars.yaml
-  vars:
-
   tasks:
-    - name: Look for network interfaces
-      ansible.builtin.setup:
-        gather_subset:
-          - network
-      register: network_facts
     - name: Add dummy network interfaces
       become: true
       ansible.builtin.command:
@@ -20,7 +13,7 @@
       loop:
         - Den01
         - Dwl01
-      when: item not in network_facts.ansible_facts.ansible_interfaces
+      when: item not in ansible_facts['interfaces']
       register: dummy_networks
     - name: Set dummy interfaces up
       ansible.builtin.command:
@@ -28,18 +21,7 @@
       loop: 
         - Den01
         - Dwl01
-      when: item in dummy_networks
-    - name: Save facts
-      ansible.builtin.copy:
-        content: "{{ ansible_facts | to_nice_yaml }}"
-        dest: /Users/ericbranson/Documents/Cluster/Multipass/facts.yaml
-      when: inventory_hostname == "iras01"
-      delegate_to: localhost
-      delegate_facts: true
-      become_user: ericbranson
-      become: true
-      vars:
-        ansible_become_pass: "{{ lookup( 'community.general.onepassword', 'macMini', field='password', vault='Ansible', service_account_token=auth_token) }}"
+      when: dummy_networks['changed']
     - name: Install thru apt
       ansible.builtin.apt:
         update_cache: true
@@ -105,11 +87,7 @@
         src: ~/Documents/Cluster/Multipass/configs/certbot-initial.conf
         dest: /opt/certbot/config/certbot.conf
         owner: certbot
-        mode: ug=rx
-    - name: Gather facts about network interfaces
-      ansible.builtin.setup:
-        gather_subset: network
-      register: interface_facts
+        mode: ug=r
     - name: Create keepalived conf file
       ansible.builtin.template:
         src: /Users/ericbranson/Documents/Cluster/Multipass/configs/keepalived_proxy.conf.j2
@@ -119,12 +97,9 @@
         state: directory
         path: /etc/haproxy/
         mode: ug=rx
-    - name: Print vars
-      ansible.builtin.debug:
-        msg: "{{ k3sControl }}"
-    - name: Configure haproxy
+    - name: Template out haproxy.conf
       ansible.builtin.template:
-        src: ~/Documents/Cluster/Multipass/configs/haproxy.conf
+        src: ~/Documents/Cluster/Multipass/configs/haproxy.conf.j2
         dest: /etc/haproxy/haproxy.cnf
         mode: ug=rx
     - name: Generate DH params field
@@ -132,18 +107,21 @@
         path: /opt/certbot/dhparams.pem
         owner: certbot
         group: certbot
-        mode: u=rwx, go=r
+        mode: 0x644
         size: 4096
-    - name: Configure inadyn
+    - name: Run certbot
+      ansible.builtin.command:
+        cmd: certbot certonly
+    - name: Copy over inadyn.conf
       ansible.builtin.copy:
         src: ~/Documents/Cluster/Multipass/configs/inadyn.conf
         dest: /etc/inadyn.conf
-        mode: ug=rx
+        mode: ug=r
     - name: Enable everything
       ansible.builtin.systemd_service:
         name: "{{ item }}"
         enabled: true
-        state: reloaded
+        state: restarted
       loop:
         - keepalived
         - haproxy
@@ -152,6 +130,5 @@
       ansible.builtin.reboot:
         connect_timeout: 5
         reboot_timeout: 600
-        post_reboot_delay: 30
         test_command: uptime
 ...

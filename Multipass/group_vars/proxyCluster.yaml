@@ -33,7 +33,7 @@ k3sControl: "{{ groups['k3sControlCluster'] | map('extract', hostvars) }}"
 
 keepalived_auth_pass: "{{ lookup('community.general.onepassword',
   'keepalived haproxy pass',
-  field='credential',
+  field='password',
   vault='Ansible',
   service_account_token=auth_token)
   }}"
