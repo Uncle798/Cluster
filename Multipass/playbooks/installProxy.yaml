@@ -4,7 +4,7 @@
   remote_user: branson
   become: true
   vars_files: 
-    /Users/ericbranson/Documents/Cluster/secrets/vault_vars.yaml
+    /Users/ericbranson/Documents/Cluster/Multipass/vault_vars.yaml
   tasks:
     - name: Add dummy network interfaces
       become: true
@@ -22,6 +22,16 @@
         - Den01
         - Dwl01
       when: dummy_networks['changed']
+    - name: Generate DH params field
+      community.crypto.openssl_dhparam:
+        path: /opt/certbot/dhparams.pem
+        owner: certbot
+        group: certbot
+        mode: 0x644
+        size: 4096
+      async: 600
+      poll: 0
+      register: dh_params_async
     - name: Install thru apt
       ansible.builtin.apt:
         update_cache: true
@@ -102,16 +112,7 @@
         src: ~/Documents/Cluster/Multipass/configs/haproxy.conf.j2
         dest: /etc/haproxy/haproxy.cnf
         mode: ug=rx
-    - name: Generate DH params field
-      community.crypto.openssl_dhparam:
-        path: /opt/certbot/dhparams.pem
-        owner: certbot
-        group: certbot
-        mode: 0x644
-        size: 4096
-    - name: Run certbot
-      ansible.builtin.command:
-        cmd: certbot certonly
+
     - name: Copy over inadyn.conf
       ansible.builtin.copy:
         src: ~/Documents/Cluster/Multipass/configs/inadyn.conf
@@ -126,6 +127,16 @@
         - keepalived
         - haproxy
         - inadyn
+    - name: Check DH params
+      ansible.builtin.async_status:
+        jid: "{{ dh_params_async.ansible_job_id }}"
+      register: job_result
+      until: job_result.finished
+      retries: 100
+      delay: 20
+    - name: Run certbot
+      ansible.builtin.command:
+        cmd: certbot certonly
     - name: Reboot
       ansible.builtin.reboot:
         connect_timeout: 5
