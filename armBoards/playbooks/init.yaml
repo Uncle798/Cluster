@@ -3,9 +3,8 @@
   hosts: armBoards
   become: true
   remote_user: branson
-  connection:
   vars_files: 
-    /Users/ericbranson/Documents/Cluster/secrets/vault_vars.yaml
+    /Users/ericbranson/Documents/Cluster/armBoards/vault_vars.yaml
   vars:
     branson_password: "{{ lookup('community.general.onepassword',
       'music pi',
@@ -21,13 +20,25 @@
     - name: Set hostname 
       ansible.builtin.hostname:
         name: '{{ inventory_hostname }}'
+    - name: Generate SSH keys
+      community.crypto.openssh_keypair:
+        path: '{{ ssh_key_path }}'
+        owner: branson
+        mode: u=rw,go=r
+        passphrase: branson_password
+        state: present
+      become: true
+      become_user: branson
+      async: 600
+      poll: 0
+      register: ssh_keys_async
     - name: Set timezone
       community.general.timezone:
         name: America/Boise
-    # - name: Change password
-    #   ansible.builtin.user:
-    #     name: branson
-    #     password: "{{ branson_password | password_hash('sha512') }}"
+    - name: Change password
+      ansible.builtin.user:
+        name: branson
+        password: "{{ branson_password | password_hash('sha512') }}"
     - name: Branson sudoer
       community.general.sudoers:
         name: branson
@@ -102,19 +113,17 @@
     - name: Check if reboot required 2
       ansible.builtin.stat:
         path: /var/run/reboot-required
-      register: reboot_required_file
+      register: reboot_required_file_2
     - name: Reboot if required 2
       ansible.builtin.reboot:
-      when: reboot_required_file.stat.exists == true
-    - name: Generate SSH keys
-      community.crypto.openssh_keypair:
-        path: '{{ ssh_key_path }}'
-        owner: branson
-        mode: u=rw,go=r
-        passphrase: branson_password
-        state: present
-      become: true
-      become_user: branson
+      when: reboot_required_file_2.stat.exists == true
+    - name: Check if keys are done
+      ansible.builtin.async_status:
+        jid: "{{ ssh_keys_async.ansible_job_id }}"
+      register: job_result
+      until: job_result.finished
+      retries: 100
+      delay: 20
     - name: Slurp key
       ansible.builtin.slurp:
         src: '{{ ssh_key_pub }}'
@@ -125,17 +134,21 @@
         state: present
         key: '{{ pub_key.content | b64decode }}'
         exclusive: true
-    - name: Print key
-      ansible.builtin.debug:
-        var: '{{ pub_key.content | b64decode }}'
-    - name: Add keys to mac known_hosts
-      local_action: 
-        module: ansible.builtin.known_hosts
-        key: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}  {{ pub_key.content }}"
-        name: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
-        state: present
-        path: /Users/ericbranson/.ssh/known_hosts
+    - name: Get keys for mac
+      ansible.builtin.command:
+        cmd: "ssh-keyscan {{ item }} >> ~/.ssh/known_hosts"
+      loop: "{{ groups['armBoards'] }}"
+      delegate_to: ericsMac 
       delegate_facts: true
+      connection: local
+      become: true
+      vars:
+        ansible_become_password: "{{ lookup('community.general.onepassword', 
+        'macMini',
+        field='password',
+        vault='Ansible',
+        service_account_token=auth_token) 
+        }}"
     - name: Clone nqptp
       ansible.builtin.git:
         repo: https://github.com/mikebrady/nqptp.git
