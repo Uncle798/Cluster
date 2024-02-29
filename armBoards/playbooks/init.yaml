@@ -17,9 +17,24 @@
     blacklist: ['lo']
     devices: "{{ interfaces | map('extract', vars) | items2dict(key_name='device', value_name='address') }}"
   tasks:
+    - name: Copy ssh-id from mac
+      ansible.builtin.command:
+        cmd: ssh-copy-id branson@{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}
+      delegate_to: ericsMac
+      delegate_facts: true
+      connection: local
+      become: true
+      become_user: ericbranson
+      vars:
+        ansible_sudo_password: "{{ lookup('community.general.onepassword',
+      'ericsMac',
+      field='password',
+      vault='Ansible',
+      service_account_token=auth_token)
+      }}"
     - name: Set hostname 
       ansible.builtin.hostname:
-        name: '{{ inventory_hostname }}'
+        name: '{{ inventory_hostname | list }}'
     - name: Generate SSH keys
       community.crypto.openssh_keypair:
         path: '{{ ssh_key_path }}'
@@ -88,6 +103,16 @@
         - python3-bcrypt
         - python3-cryptography
         - zsh
+        - pipx
+      loop_control:
+        label: "{{ item.name }}"
+    - name: Pipx ensure path
+      ansible.builtin.command:
+        cmd: pipx ensurepath
+    - name: Install thru pipx
+      community.general.pipx:
+        name: thefuck
+        state: present
     - name: Download install script
       ansible.builtin.command:
         cmd: wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
@@ -149,6 +174,9 @@
         vault='Ansible',
         service_account_token=auth_token) 
         }}"
+    - name: Get keys from mac
+      ansible.builtin.command:
+        cmd "ssh-keyscan {{ inventory_hostname[''] }}"
     - name: Clone nqptp
       ansible.builtin.git:
         repo: https://github.com/mikebrady/nqptp.git
@@ -195,54 +223,59 @@
         state: directory
         path: /home/branson/scripts
         owner: branson
-        mode: ugo=rwx
+        mode: a=rwx
     - name: Make log file
       ansible.builtin.file:
         state: touch
         path: /home/branson/shairport-sync/log.log
         owner: branson
-        mode: ugo=rw
+        mode: a=rw
     - name: Copy over conf file
       ansible.builtin.copy:
         src: /Users/ericbranson/Documents/Cluster/armBoards/shairport-sync.conf
         dest: /etc/shairport-sync.conf
-        mode: ugo=rw
-    - name: Copy over relay on script
-      ansible.builtin.copy:
-        src: /Users/ericbranson/Documents/Cluster/armBoards/scripts/kitchenStereoRelayOn.sh
-        dest: /home/branson/scripts/speakerRelayOn.sh
-        mode: ugo=rwx
-        owner: branson
-    - name: Copy over relay off script
-      ansible.builtin.copy:
-        src: /Users/ericbranson/Documents/Cluster/armBoards/scripts/kitchenStereoRelayOff.sh
-        dest: /home/branson/scripts/speakerRelayOff.sh
-        mode: ugo=rwx
-        owner: branson
+        mode: a=rw
+    # - name: Copy over relay on script
+    #   ansible.builtin.copy:
+    #     src: /Users/ericbranson/Documents/Cluster/armBoards/scripts/kitchenStereoRelayOn.sh
+    #     dest: /home/branson/scripts/speakerRelayOn.sh
+    #     mode: ugo=rwx
+    #     owner: branson
+    # - name: Copy over relay off script
+    #   ansible.builtin.copy:
+    #     src: /Users/ericbranson/Documents/Cluster/armBoards/scripts/kitchenStereoRelayOff.sh
+    #     dest: /home/branson/scripts/speakerRelayOff.sh
+    #     mode: ugo=rwx
+    #     owner: branson
     - name: Enable shairport-sync
       ansible.builtin.systemd_service:
         name: shairport-sync
         state: restarted
         enabled: true
-    - name: Clone wiringOP
-      ansible.builtin.git:
-        repo: https://github.com/orangepi-xunlong/wiringOP.git
-        clone: true
-        dest: /home/branson/wiringOP
-    - name: Build wiringOP
-      ansible.builtin.command:
-        chdir: /home/branson/wiringOP
-        cmd: '{{ item }}'
-      loop:
-        - ./build clean
-        - ./build
-    - name: Read gpio
-      ansible.builtin.command:
-        cmd: gpio readall
-      register: gpio_readall
-    - name: Print gpio
-      ansible.builtin.debug:
-        var: gpio_readall
+    # - name: Clone wiringOP
+    #   ansible.builtin.git:
+    #     repo: https://github.com/orangepi-xunlong/wiringOP.git
+    #     clone: true
+    #     dest: /home/branson/wiringOP
+    #   when: ansible_facts['ansible_distribution'] is "armbian"
+    #   register: wiringOP
+    # - name: Build wiringOP
+    #   ansible.builtin.command:
+    #     chdir: /home/branson/wiringOP
+    #     cmd: '{{ item }}'
+    #   loop:
+    #     - ./build clean
+    #     - ./build
+    #   when: wiringOp.result is changed
+    # - name: Read gpio
+    #   ansible.builtin.command:
+    #     cmd: gpio readall
+    #   register: gpio_readall
+    #   when: wiringOp.result is changed
+    # - name: Print gpio
+    #   ansible.builtin.debug:
+    #     var: gpio_readall
+    #   when: wiringOp.result is changed
     - name: Auto remove
       ansible.builtin.apt:
         autoremove: true
