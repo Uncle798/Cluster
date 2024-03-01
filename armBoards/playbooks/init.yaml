@@ -27,14 +27,14 @@
       become_user: ericbranson
       vars:
         ansible_sudo_password: "{{ lookup('community.general.onepassword',
-      'ericsMac',
-      field='password',
-      vault='Ansible',
-      service_account_token=auth_token)
-      }}"
+          'ericsMac',
+          field='password',
+          vault='Ansible',
+          service_account_token=auth_token)
+          }}"
     - name: Set hostname 
       ansible.builtin.hostname:
-        name: '{{ inventory_hostname | list }}'
+        name: '{{ inventory_hostname }}'
     - name: Generate SSH keys
       community.crypto.openssh_keypair:
         path: '{{ ssh_key_path }}'
@@ -42,8 +42,6 @@
         mode: u=rw,go=r
         passphrase: branson_password
         state: present
-      become: true
-      become_user: branson
       async: 600
       poll: 0
       register: ssh_keys_async
@@ -65,13 +63,6 @@
       ansible.builtin.apt:
         update_cache: true
         upgrade: true
-    - name: Check if reboot required
-      ansible.builtin.stat:
-        path: /var/run/reboot-required
-      register: reboot_required_file
-    - name: Reboot if required
-      ansible.builtin.reboot:
-      when: reboot_required_file.stat.exists == true
     - name: Install thru apt
       ansible.builtin.apt:
         name: '{{ item }}'
@@ -105,7 +96,7 @@
         - zsh
         - pipx
       loop_control:
-        label: "{{ item.name }}"
+        label: "{{ item }}"
     - name: Pipx ensure path
       ansible.builtin.command:
         cmd: pipx ensurepath
@@ -130,18 +121,11 @@
         src: ~/Documents/Cluster/Multipass/configs/zshrc.conf
         dest: /home/branson/.zshrc
         owner: branson
-        mode: ug=rw,
+        mode: '642'
     - name: Change shell
       ansible.builtin.user:
         name: branson
         shell: /bin/zsh
-    - name: Check if reboot required 2
-      ansible.builtin.stat:
-        path: /var/run/reboot-required
-      register: reboot_required_file_2
-    - name: Reboot if required 2
-      ansible.builtin.reboot:
-      when: reboot_required_file_2.stat.exists == true
     - name: Check if keys are done
       ansible.builtin.async_status:
         jid: "{{ ssh_keys_async.ansible_job_id }}"
@@ -149,6 +133,9 @@
       until: job_result.finished
       retries: 100
       delay: 20
+      become: true
+      vars:
+        ansible_async_dir: '{{ ssh_keys_async.results_file | dirname }}'
     - name: Slurp key
       ansible.builtin.slurp:
         src: '{{ ssh_key_pub }}'
@@ -174,9 +161,6 @@
         vault='Ansible',
         service_account_token=auth_token) 
         }}"
-    - name: Get keys from mac
-      ansible.builtin.command:
-        cmd "ssh-keyscan {{ inventory_hostname[''] }}"
     - name: Clone nqptp
       ansible.builtin.git:
         repo: https://github.com/mikebrady/nqptp.git
