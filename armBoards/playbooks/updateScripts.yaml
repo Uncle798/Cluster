@@ -16,6 +16,7 @@
       ansible.builtin.apt:
         update_cache: true
         upgrade: true
+        cache_valid_time: 3600
     - name: Syncronize scripts folder
       ansible.builtin.copy:
         src: /Users/ericbranson/Documents/Cluster/armBoards/scripts

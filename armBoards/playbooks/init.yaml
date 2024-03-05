@@ -63,6 +63,7 @@
       ansible.builtin.apt:
         update_cache: true
         upgrade: true
+        cache_valid_time: 3600
     - name: Install thru apt
       ansible.builtin.apt:
         name: '{{ item }}'
@@ -102,6 +103,7 @@
     - name: Pipx ensure path
       ansible.builtin.command:
         cmd: pipx ensurepath
+      become: true
     - name: Install thru pipx
       community.general.pipx:
         name: thefuck
@@ -128,6 +130,14 @@
       ansible.builtin.user:
         name: branson
         shell: /bin/zsh
+    - name: Clone wiringPi
+      ansible.builtin.git:
+        repo: https://github.com/WiringPi/WiringPi.git
+        clone: true
+        dest: /home/branson/wiringPi
+    - name: Install wiring pi
+      ansible.builtin.apt:
+        deb: /home/branson/wiringPi/debian-template/wiringpi_3.0_arm64.deb
     - name: Check if keys are done
       ansible.builtin.async_status:
         jid: "{{ ssh_keys_async.ansible_job_id }}"
@@ -223,14 +233,12 @@
         mode: a=rw
       vars:
         airplay_name: "{{ hostvars  regex('/[A-Z-_\&](?=[a-z0-9]+)|[A-Z-_\&]+(?![a-z0-9])/g') }}"
-    - name: Copy over relay on script
+    - name: Copy over relay on scripts
       ansible.builtin.copy:
-        src: /Users/ericbranson/Documents/Cluster/armBoards/scripts/kitchenStereoRelayOn.py
-        dest: /home/branson/scripts/speakerRelayOn.py
+        src: /Users/ericbranson/Documents/Cluster/armBoards/scripts
+        dest: /home/branson/
         mode: ugo=rwx
         owner: branson
-      vars:
-        file_name: speakerRelayOn.py
     - name: Enable shairport-sync
       ansible.builtin.systemd_service:
         name: shairport-sync
