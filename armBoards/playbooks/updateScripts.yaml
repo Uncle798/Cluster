@@ -1,10 +1,9 @@
----
-- name: Init arm boards
-  hosts: all
+- name: update arm boards
+  hosts: armBoards
   become: true
   remote_user: branson
   vars_files: 
-    /Users/ericbranson/Documents/Cluster/secrets/vault_vars.yaml
+    /Users/ericbranson/Documents/Cluster/armBoards/vault_vars.yaml
   vars:
     branson_password: "{{ lookup('community.general.onepassword',
       'music pi',
@@ -13,18 +12,15 @@
       service_account_token=auth_token)
       }}"
   tasks:
-    - name: Copy over relay on script
+    - name: Update apt
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: true
+    - name: Syncronize scripts folder
       ansible.builtin.copy:
-        src: /Users/ericbranson/Documents/Cluster/armBoards/scripts/kitchenStereoRelayOn.sh
-        dest: /home/branson/scripts/speakerRelayOn.sh
-        mode: ugo=rwx
-        owner: branson
-    - name: Copy over relay off script
-      ansible.builtin.copy:
-        src: /Users/ericbranson/Documents/Cluster/armBoards/scripts/kitchenStereoRelayOff.sh
-        dest: /home/branson/scripts/speakerRelayOff.sh
-        mode: ugo=rwx
-        owner: branson
+        src: /Users/ericbranson/Documents/Cluster/armBoards/scripts
+        dest: /home/branson/
+        mode: '755'
     - name: Check if reboot required
       ansible.builtin.stat:
         path: /var/run/reboot-required

@@ -71,6 +71,7 @@
         - git
         - openssh-client
         - openssh-server
+        - alsa-base
         - autoconf
         - automake
         - libpopt-dev
@@ -88,12 +89,13 @@
         - uuid-dev
         - libgcrypt-dev
         - xxd
+        - zsh
         - python3-full
         - python3-pip
         - python3-setuptools
         - python3-bcrypt
         - python3-cryptography
-        - zsh
+        - python3-lgpio
         - pipx
       loop_control:
         label: "{{ item }}"
@@ -219,18 +221,16 @@
         src: /Users/ericbranson/Documents/Cluster/armBoards/shairport-sync.conf
         dest: /etc/shairport-sync.conf
         mode: a=rw
-    # - name: Copy over relay on script
-    #   ansible.builtin.copy:
-    #     src: /Users/ericbranson/Documents/Cluster/armBoards/scripts/kitchenStereoRelayOn.sh
-    #     dest: /home/branson/scripts/speakerRelayOn.sh
-    #     mode: ugo=rwx
-    #     owner: branson
-    # - name: Copy over relay off script
-    #   ansible.builtin.copy:
-    #     src: /Users/ericbranson/Documents/Cluster/armBoards/scripts/kitchenStereoRelayOff.sh
-    #     dest: /home/branson/scripts/speakerRelayOff.sh
-    #     mode: ugo=rwx
-    #     owner: branson
+      vars:
+        airplay_name: "{{ hostvars  regex('/[A-Z-_\&](?=[a-z0-9]+)|[A-Z-_\&]+(?![a-z0-9])/g') }}"
+    - name: Copy over relay on script
+      ansible.builtin.copy:
+        src: /Users/ericbranson/Documents/Cluster/armBoards/scripts/kitchenStereoRelayOn.py
+        dest: /home/branson/scripts/speakerRelayOn.py
+        mode: ugo=rwx
+        owner: branson
+      vars:
+        file_name: speakerRelayOn.py
     - name: Enable shairport-sync
       ansible.builtin.systemd_service:
         name: shairport-sync
