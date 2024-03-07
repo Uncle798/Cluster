@@ -135,6 +135,10 @@
         repo: https://github.com/WiringPi/WiringPi.git
         clone: true
         dest: /home/branson/wiringPi
+    - name: Build wiringPi
+      ansible.builtin.command:
+        cmd: ./build debian
+        chdir: /home/branson/wiringPi
     - name: Install wiring pi
       ansible.builtin.apt:
         deb: /home/branson/wiringPi/debian-template/wiringpi_3.0_arm64.deb
@@ -231,8 +235,8 @@
         src: /Users/ericbranson/Documents/Cluster/armBoards/shairport-sync.conf
         dest: /etc/shairport-sync.conf
         mode: a=rw
-      vars:
-        airplay_name: "{{ hostvars  regex('/[A-Z-_\&](?=[a-z0-9]+)|[A-Z-_\&]+(?![a-z0-9])/g') }}"
+      # vars:
+      #   airplay_name: "{{ hostvars  regex('/[A-Z-_\&](?=[a-z0-9]+)|[A-Z-_\&]+(?![a-z0-9])/g') }}"
     - name: Copy over relay on scripts
       ansible.builtin.copy:
         src: /Users/ericbranson/Documents/Cluster/armBoards/scripts
