@@ -40,6 +40,7 @@
       ansible.builtin.apt:
         update_cache: true
         upgrade: true
+        cache_valid_time: 
     - name: Install thru apt
       ansible.builtin.apt:
         name: "{{ item }}"
@@ -53,14 +54,11 @@
       ansible.builtin.command:
         cmd: wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
         creates: /home/branson/install.sh
-      become: true
-      become_user: branson
     - name: Run omz install script
       ansible.builtin.command:
         cmd: sh /home/branson/install.sh --unattended
         creates: /home/branson/.oh-my-zsh/oh-my-zsh.sh
-      become: true
-      become_user: branson
+      become: false
     - name: Set Zsh Config
       ansible.builtin.copy:
         src: ~/Documents/Cluster/Multipass/configs/zshrc.conf

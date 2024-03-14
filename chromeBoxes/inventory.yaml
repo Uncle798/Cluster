@@ -1,0 +1,17 @@
+chrome:
+  hosts:
+    chromebox15.local:
+      ansible_host: 192.168.1.176
+myMac:
+  hosts:
+    ericsMac:
+      ansible_host: 192.168.1.51
+      become_user: ericbranson
+      become_pass: "{{ lookup('community.general.onepassword',
+        'macMini',
+        field='password',
+        vault='Ansible',
+        service_account_token=auth_token)
+        }}"
+      ansible_python_interpreter: auto_silent
+      ansible_connection: local
