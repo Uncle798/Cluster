@@ -3,11 +3,11 @@
   hosts: proxyCluster
   remote_user: branson
   become: true
+  become_method: sudo
   vars_files: 
     /Users/ericbranson/Documents/Cluster/Multipass/vault_vars.yaml
   tasks:
     - name: Add dummy network interfaces
-      become: true
       ansible.builtin.command:
         cmd: ip link add {{ item }} type dummy
       loop:
@@ -67,16 +67,14 @@
         nopassword: true
         commands:
           - /bin/systemctl restart haproxy
-    - name: Add haproxy to certbot group
+    - name: Add users to certbot group
       ansible.builtin.user:
-        name: haproxy
+        name: "{{ item }}"
         groups: certbot
         append: true
-    - name: Add branson to certbot group
-      ansible.builtin.user:
-        name: branson
-        groups: certbot
-        append: true
+      loop:
+        - haproxy
+        - branson
     - name: Add certbot opt folders
       ansible.builtin.file:
         state: directory
@@ -112,7 +110,6 @@
         src: ~/Documents/Cluster/Multipass/configs/haproxy.conf.j2
         dest: /etc/haproxy/haproxy.cnf
         mode: ug=rx
-
     - name: Copy over inadyn.conf
       ansible.builtin.copy:
         src: ~/Documents/Cluster/Multipass/configs/inadyn.conf

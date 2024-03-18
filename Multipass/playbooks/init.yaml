@@ -2,6 +2,7 @@
 - name: Initialize vms
   hosts: all
   become: true
+  become_method: sudo
   remote_user: branson
   vars_files: 
     /Users/ericbranson/Documents/Cluster/Multipass/vault_vars.yaml
