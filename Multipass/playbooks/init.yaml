@@ -12,7 +12,20 @@
       vault='Ansible',
       service_account_token=auth_token)
       }}"
+    run_num: 
   tasks:
+    - name: Set branson password
+      ansible.builtin.expect:
+        command: passwd branson
+        responses:
+          (?i)password: "{{ branson_password }}"
+      no_log: true
+      when: password_changed is undefined
+      register: password_change
+    - name: Set password change to true
+      ansible.builtin.set_fact:
+        password_changed: true
+      when: password_change.changed is true
     - name: Fix network start delay
       ansible.builtin.copy:
         src: ~/Documents/Linux/systemd-networkd-wait-online.service
