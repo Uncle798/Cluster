@@ -58,7 +58,7 @@
     - name: Setup certbot user
       ansible.builtin.user:
         name: certbot
-        home: /opt/certbot
+        home: /home/certbot
         state: present
     - name: Certbot sudoer
       community.general.sudoers:
@@ -75,10 +75,10 @@
       loop:
         - haproxy
         - branson
-    - name: Add certbot opt folders
+    - name: Add certbot home folders
       ansible.builtin.file:
         state: directory
-        path: "/opt/certbot/{{ item }}"
+        path: "/home/certbot/{{ item }}"
         owner: certbot
         mode: ug=rx
       loop:
@@ -87,15 +87,37 @@
     - name: Add certbot etc folders
       ansible.builtin.file:
         state: directory
-        path: /etc/certbot/renewal
+        path: /etc/letsencrypt/renewal
         owner: certbot
         mode: ug=rx
     - name: Configure certbot
       ansible.builtin.template:
-        src: ~/Documents/Cluster/Multipass/configs/certbot-initial.conf
-        dest: /opt/certbot/config/certbot.conf
+        src: ~/Documents/Cluster/Multipass/configs/certbot-initial.conf.j2
+        dest: "{{ item }}"
         owner: certbot
         mode: ug=r
+      loop:
+        - /etc/letsencrypt/renewal/certbot.conf
+        - /home/certbot/certbot.conf
+    - name: Cloudflare credintials
+      ansible.builtin.template:
+        src: /Users/ericbranson/Documents/Cluster/Multipass/configs/certbot-cloudflair.ini.j2
+        dest: /home/certbot/certbot-cloudflair.ini
+        owner: certbot
+        mode: '640'
+      vars:
+        cloudflare_api_token: "{{ lookup('community.general.onepassword',
+      'Cloudflare DNS zone key',
+      field='credential',
+      vault='Ansible',
+      service_account_token=auth_token)
+      }}"
+    - name: Copy over certbot cli.ini
+      ansible.builtin.copy:
+        src: /Users/ericbranson/Documents/Cluster/Multipass/configs/certbot-cli.ini
+        dest: /etc/letsencrypt/cli.ini
+        owner: certbot
+        mode: 440
     - name: Create keepalived conf file
       ansible.builtin.template:
         src: /Users/ericbranson/Documents/Cluster/Multipass/configs/keepalived_proxy.conf.j2
