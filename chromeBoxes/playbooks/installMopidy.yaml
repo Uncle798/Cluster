@@ -1,0 +1,44 @@
+---
+- name: Initialize chromebox
+  hosts: chromeboxes
+  become: true
+  remote_user: branson
+  become_method: sudo
+  vars_files: 
+    /Users/ericbranson/Documents/Cluster/chromeBoxes/vault_vars.yaml
+  vars:
+    ansible_become_password: "{{ branson_password }}"
+    branson_password: "{{ lookup('community.general.onepassword',
+      'chromeboxes',
+      field='password',
+      vault='Ansible',
+      service_account_token=auth_token)
+      }}"
+  tasks:
+    - name: Get gpg key
+      ansible.builtin.apt_key:
+        url: https://apt.mopidy.com/mopidy.gpg
+        state: present
+        keyring: /etc/apt/keyrings/mopidy-archive-keyring.gpg
+    - name: Add repo
+      ansible.builtin.apt_repository:
+        repo: deb https://apt.mopidy.com/ bookworm main contrib non-free
+        state: present
+    - name: Install mopidy
+      ansible.builtin.apt:
+        update_cache: true
+        name: mopdiy
+    - name: Install extentsions
+      ansible.builtin.pip:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - Mopidy-YTMusic
+        - Mopidy-Iris
+    - name: Enable Mopidy
+      ansible.builtin.systemd_service:
+        name: mopidy
+        state: restarted
+        enabled: true
+            
+...   
