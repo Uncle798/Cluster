@@ -4,6 +4,7 @@
   become: true
   remote_user: branson
   become_method: sudo
+  gather_facts: false
   vars_files: 
     /Users/ericbranson/Documents/Cluster/chromeBoxes/vault_vars.yaml
   vars:
@@ -17,6 +18,10 @@
     ssh_key_path: "/home/branson/.ssh/{{ inventory_hostname }}_branson_id"
     ssh_key_pub: '{{ ssh_key_path }}.pub'
   tasks:
+    - name: Gather ansible_facts
+      ansible.builtin.gather_facts:
+      vars:
+        ansible_become_password: branson
     - name: Set branson password
       ansible.builtin.expect:
         command: passwd branson
@@ -25,6 +30,8 @@
       no_log: true
       when: password_changed is undefined
       register: password_change
+      vars: 
+        ansible_become_password: branson
     - name: Set password change to true
       ansible.builtin.set_fact:
         password_changed: true
@@ -96,6 +103,7 @@
         - python3-cryptography
         - python3-lgpio
         - pipx
+        - thefuck
       loop_control:
         label: "{{ item }}"
     - name: Check if reboot required 2
