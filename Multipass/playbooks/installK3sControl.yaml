@@ -1,8 +1,0 @@
----
-- name: Initialize k3sControl hosts
-  hosts: k3sControlCluster
-  remote_user: branson
-  become: true
-  vars_files: 
-    /Users/ericbranson/Documents/Cluster/secrets/vault_vars.yaml
-  tasks:

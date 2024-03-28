@@ -1,0 +1,164 @@
+---
+- name: Initialize proxy hosts
+  hosts: proxyCluster
+  remote_user: branson
+  become: true
+  become_method: sudo
+  vars_files: 
+    /Users/ericbranson/Documents/Cluster/Multipass/vault_vars.yaml
+  tasks:
+    - name: Add dummy network interfaces
+      ansible.builtin.command:
+        cmd: ip link add {{ item }} type dummy
+      loop:
+        - Den01
+        - Dwl01
+      when: item not in ansible_facts['interfaces']
+      register: dummy_networks
+    - name: Set dummy interfaces up
+      ansible.builtin.command:
+        cmd: ip link set dev {{ item }} up
+      loop: 
+        - Den01
+        - Dwl01
+      when: dummy_networks['changed']
+    - name: Generate DH params field
+      community.crypto.openssl_dhparam:
+        path: /opt/certbot/dhparams.pem
+        owner: certbot
+        group: certbot
+        mode: 0x644
+        size: 4096
+      async: 600
+      poll: 0
+      register: dh_params_async
+    - name: Install thru apt
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 216000 # 1h
+        name: "{{ item }}"
+      loop:
+        - keepalived
+        - haproxy
+        - inadyn
+    - name: Install certbot
+      community.general.snap:
+        name: certbot
+        classic: true
+    - name: Setup the symbolic link
+      ansible.builtin.file:
+        src: /snap/bin/certbot
+        dest: /usr/bin/certbot
+        state: link
+    - name: Acknowledge warning
+      ansible.builtin.command: snap set certbot trust-plugin-with-root=ok
+    - name: Install certbot cloudflare plugin
+      community.general.snap:
+        name: certbot-dns-cloudflare
+    - name: Setup certbot user
+      ansible.builtin.user:
+        name: certbot
+        home: /home/certbot
+        state: present
+    - name: Certbot sudoer
+      community.general.sudoers:
+        name: certbot
+        user: certbot
+        nopassword: true
+        commands:
+          - /bin/systemctl restart haproxy
+    - name: Add users to certbot group
+      ansible.builtin.user:
+        name: "{{ item }}"
+        groups: certbot
+        append: true
+      loop:
+        - haproxy
+        - branson
+    - name: Add certbot home folders
+      ansible.builtin.file:
+        state: directory
+        path: "/home/certbot/{{ item }}"
+        owner: certbot
+        mode: ug=rx
+      loop:
+        - config
+        - logs
+    - name: Add certbot etc folders
+      ansible.builtin.file:
+        state: directory
+        path: /etc/letsencrypt/renewal
+        owner: certbot
+        mode: ug=rx
+    - name: Configure certbot
+      ansible.builtin.template:
+        src: ~/Documents/Cluster/Multipass/configs/certbot-initial.conf.j2
+        dest: "{{ item }}"
+        owner: certbot
+        mode: ug=r
+      loop:
+        - /etc/letsencrypt/renewal/certbot.conf
+        - /home/certbot/certbot.conf
+    - name: Cloudflare credintials
+      ansible.builtin.template:
+        src: /Users/ericbranson/Documents/Cluster/Multipass/configs/certbot-cloudflair.ini.j2
+        dest: /home/certbot/certbot-cloudflair.ini
+        owner: certbot
+        mode: '640'
+      vars:
+        cloudflare_api_token: "{{ lookup('community.general.onepassword',
+      'Cloudflare DNS zone key',
+      field='credential',
+      vault='Ansible',
+      service_account_token=auth_token)
+      }}"
+    - name: Copy over certbot cli.ini
+      ansible.builtin.copy:
+        src: /Users/ericbranson/Documents/Cluster/Multipass/configs/certbot-cli.ini
+        dest: /etc/letsencrypt/cli.ini
+        owner: certbot
+        mode: 440
+    - name: Create keepalived conf file
+      ansible.builtin.template:
+        src: /Users/ericbranson/Documents/Cluster/Multipass/configs/keepalived_proxy.conf.j2
+        dest: /etc/keepalived/keepalived.conf
+    - name: Add haproxy folders
+      ansible.builtin.file:
+        state: directory
+        path: /etc/haproxy/
+        mode: ug=rx
+    - name: Template out haproxy.conf
+      ansible.builtin.template:
+        src: ~/Documents/Cluster/Multipass/configs/haproxy.conf.j2
+        dest: /etc/haproxy/haproxy.cnf
+        mode: ug=rx
+    - name: Copy over inadyn.conf
+      ansible.builtin.copy:
+        src: ~/Documents/Cluster/Multipass/configs/inadyn.conf
+        dest: /etc/inadyn.conf
+        mode: ug=r
+    - name: Enable everything
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        enabled: true
+        state: restarted
+      loop:
+        - keepalived
+        - haproxy
+        - inadyn
+    - name: Check DH params
+      ansible.builtin.async_status:
+        jid: "{{ dh_params_async.ansible_job_id }}"
+      register: job_result
+      until: job_result.finished
+      retries: 100
+      delay: 20
+    - name: Run certbot
+      ansible.builtin.command:
+        cmd: certbot certonly
+    - name: Reboot
+      ansible.builtin.reboot:
+        connect_timeout: 5
+        reboot_timeout: 600
+        test_command: uptime
+...

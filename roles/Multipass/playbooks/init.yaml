@@ -1,0 +1,47 @@
+---
+- name: Initialize vms
+  hosts: all
+  become: true
+  become_method: sudo
+  remote_user: branson
+  gather_facts: false
+  vars_files: 
+    /Users/ericbranson/Documents/Cluster/Multipass/vault_vars.yaml
+  vars: 
+    branson_password: "{{ lookup('community.general.onepassword',
+      'chromeboxes',
+      field='password',
+      vault='Ansible',
+      service_account_token=auth_token)
+      }}"
+  tasks:
+    - name: Set branson password
+      ansible.builtin.expect:
+        command: passwd branson
+        responses:
+          (?i)password: "{{ branson_password }}"
+      no_log: true
+      when: password_changed is undefined
+      register: password_change
+    - name: Set password change to true
+      ansible.builtin.set_fact:
+        password_changed: true
+      when: password_change.changed is true
+    - name: Gather facts
+      ansible.builtin.gather_facts:
+      when: password_changed is true
+    - name: Update and install thru Apt
+      ansible.builtin.import_tasks:
+        file: "../../tasks/init.yaml"
+    - name: Install OMZ
+      ansible.builtin.import_tasks:
+        file: "../../tasks/installOMZ.yaml"
+    - name: Auto remove
+      ansible.builtin.apt:
+        autoremove: true
+    - name: Reboot
+      ansible.builtin.reboot:
+        connect_timeout: 5
+        reboot_timeout: 600
+        post_reboot_delay: 30
+        test_command: uptime

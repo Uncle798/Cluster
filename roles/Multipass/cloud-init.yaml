@@ -1,0 +1,9 @@
+ssh_delete_keys: false
+users:
+  - default
+  - name: branson
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys:
+    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDOfvKLS/uFDVK3RctFPxtSods/hUsnVGwvCDhgirktIDAy7j6As3dfHl/O+dVxLqH+p8S6cHTul47cmk8dC9UNU2HNntadGTZa0JCGEHiatk4WhFlGoMXHpMiu6QOR6Y19EKiTuEoVl/DKKNIasFrNqAlWA+TrB48XHaAWw9z0xoABFjwlCGbWfkkQahTxg2YJ0r3ksn8B5QSb4Yv0i+vbJAS/D/6Bzyn+CQK0AOsiBL/ohLnGQpC3NoU9lqsuNfm55s2wvBo7MjJ4buqandADznP2Er7jsp3kxGFCXPd8Rb1vWBJAmR39OyW3887AwLUr1hsG2qyn7dQeBJ8n3/ueOFRzr6J/Df7WMhutnt6XYXH/Gr5I5ie0BSCQrYixOTW9NnTk5GUiR2iJBr0jsLaruTd7cI+MnJ2aVsyZufp79Ods+8ryTThGRkArFOx/OPhWE7PUURqt55KxWCZtPMyMbN6KF425CWynZVHxrgnhpfLOUoOxo8t7XyslSXRP/qE= branson
+

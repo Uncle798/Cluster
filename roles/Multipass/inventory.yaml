@@ -1,0 +1,18 @@
+proxyCluster:
+  hosts:
+    denver01:
+      ansible_host: 192.168.64.35
+    denver02:
+      ansible_host: 192.168.64.36
+k3sControlCluster:
+  hosts:
+    denver11:
+      ansible_host: 192.168.64.37
+    denver12:
+      ansible_host: 192.168.64.38
+k3sAgentCluster:
+  hosts:
+    denver21:
+      ansible_host: 192.168.64.39
+    denver22:
+      ansible_host: 192.168.64.40

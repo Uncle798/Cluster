@@ -1,0 +1,104 @@
+---
+- name: Initialize chromebox
+  hosts: chromeboxes
+  become: true
+  remote_user: branson
+  become_method: sudo
+  gather_facts: false # for initial run need to use bad "branson" password
+  vars_files: 
+    /Users/ericbranson/Documents/Cluster/chromeBoxes/vault_vars.yaml
+  vars:
+    ansible_become_password: "{{ branson_password }}"
+    branson_password: "{{ lookup('community.general.onepassword',
+      'chromeboxes',
+      field='password',
+      vault='Ansible',
+      service_account_token=auth_token)
+      }}"
+    ssh_key_path: "/home/branson/.ssh/{{ inventory_hostname }}_branson_id"
+    ssh_key_pub: '{{ ssh_key_path }}.pub'
+  tasks:
+    - name: Gather ansible_facts
+      ansible.builtin.gather_facts:
+      vars:
+        ansible_become_password: branson
+      when: password_changed is undefined
+    - name: Set branson password
+      ansible.builtin.expect:
+        command: passwd branson
+        responses:
+          (?i)password: "{{ branson_password }}"
+      no_log: true
+      when: password_changed is undefined
+      register: password_change
+      vars: 
+        ansible_become_password: branson
+    - name: Set password change to true
+      ansible.builtin.set_fact:
+        password_changed: true
+      when: password_change.changed is true
+    - name: Gather facts
+      ansible.builtin.gather_facts:
+      when: password_changed is true
+    - name: Update and install thru Apt
+      ansible.builtin.import_tasks:
+        file: "../../tasks/installOMZ.yaml"
+    - name: Generate SSH keys
+      community.crypto.openssh_keypair:
+        path: '{{ ssh_key_path }}'
+        owner: branson
+        mode: u=rw,go=r
+        passphrase: branson_password
+        state: present
+      async: 600
+      poll: 0
+      register: ssh_keys_async
+    - name: Install OMZ
+      ansible.builtin.import_tasks:
+        file: "../../tasks/installOMZ.yaml"
+    - name: Check if keys are done
+      ansible.builtin.async_status:
+        jid: "{{ ssh_keys_async.ansible_job_id }}"
+      register: job_result
+      until: job_result.finished
+      retries: 100
+      delay: 20
+      become: true
+      vars:
+        ansible_async_dir: '{{ ssh_keys_async.results_file | dirname }}'
+    - name: Slurp key
+      ansible.builtin.slurp:
+        src: '{{ ssh_key_pub }}'
+      register: pub_key
+    - name: Set keys
+      ansible.posix.authorized_key:
+        user: branson
+        state: present
+        key: '{{ pub_key.content | b64decode }}'
+        exclusive: true
+    - name: Get keys for mac
+      ansible.builtin.shell:
+        cmd: "ssh-keyscan {{ item }} >> ~/.ssh/known_hosts"
+      loop: "{{ groups['chromeboxes'] }}"
+      delegate_to: ericsMac 
+      delegate_facts: true
+      connection: local
+      become: true
+      become_user: ericbranson
+      vars:
+        ansible_become_password: "{{ lookup('community.general.onepassword', 
+        'macMini',
+        field='password',
+        vault='Ansible',
+        service_account_token=auth_token) 
+        }}"
+    - name: Auto remove
+      ansible.builtin.apt:
+        autoremove: true
+    - name: Reboot
+      ansible.builtin.reboot:
+        connect_timeout: 5
+        reboot_timeout: 600
+        post_reboot_delay: 30
+        test_command: uptime
+... 
