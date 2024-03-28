@@ -35,6 +35,7 @@
     - name: Install thru apt
       ansible.builtin.apt:
         update_cache: true
+        cache_valid_time: 216000 # 1h
         name: "{{ item }}"
       loop:
         - keepalived
@@ -51,7 +52,6 @@
         state: link
     - name: Acknowledge warning
       ansible.builtin.command: snap set certbot trust-plugin-with-root=ok
-      register: output
     - name: Install certbot cloudflare plugin
       community.general.snap:
         name: certbot-dns-cloudflare

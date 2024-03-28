@@ -21,7 +21,7 @@
     cache_valid_time: 3600
 - name: Reboot if required
   ansible.builtin.import_tasks:
-    file: Generic tasks/reboot.yaml
+    file: ./reboot.yaml
 - name: Install thru apt
   ansible.builtin.apt:
     name: '{{ item }}'
@@ -61,4 +61,4 @@
     label: "{{ item }}"
 - name: Reboot if required
   ansible.builtin.import_tasks:
-    file: Generic tasks/reboot.yaml
+    file: ./reboot.yaml

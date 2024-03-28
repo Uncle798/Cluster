@@ -42,7 +42,7 @@
       when: password_changed is true
     - name: Update and install thru Apt
       ansible.builtin.import_tasks:
-        file: "../../Generic tasks/installOMZ.yaml"
+        file: "../../tasks/installOMZ.yaml"
     - name: Generate SSH keys
       community.crypto.openssh_keypair:
         path: '{{ ssh_key_path }}'
@@ -55,7 +55,7 @@
       register: ssh_keys_async
     - name: Install OMZ
       ansible.builtin.import_tasks:
-        file: "../../Generic tasks/installOMZ.yaml"
+        file: "../../tasks/installOMZ.yaml"
     - name: Check if keys are done
       ansible.builtin.async_status:
         jid: "{{ ssh_keys_async.ansible_job_id }}"
