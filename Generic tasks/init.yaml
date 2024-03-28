@@ -1,0 +1,64 @@
+- name: Fix network start delay
+  ansible.builtin.copy:
+    src: ~/Documents/Linux/systemd-networkd-wait-online.service
+    dest: /etc/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service
+    owner: root
+    mode: u=rwx,g=rx
+- name: Set timezone
+  community.general.timezone:
+    name: America/Boise
+- name: Branson sudoer
+  community.general.sudoers:
+    name: branson
+    user: branson
+    nopassword: true
+    commands:
+      - ALL
+- name: Update apt
+  ansible.builtin.apt:
+    update_cache: true
+    upgrade: true
+    cache_valid_time: 3600
+- name: Reboot if required
+  ansible.builtin.import_tasks:
+    file: Generic tasks/reboot.yaml
+- name: Install thru apt
+  ansible.builtin.apt:
+    name: '{{ item }}'
+  loop: 
+    - build-essential
+    - git
+    - openssh-client
+    - openssh-server
+    - alsa-base
+    - autoconf
+    - automake
+    - libpopt-dev
+    - libconfig-dev
+    - libasound2-dev
+    - avahi-daemon
+    - libavahi-client-dev
+    - libssl-dev
+    - libsoxr-dev
+    - libplist-dev
+    - libsodium-dev
+    - libavutil-dev
+    - libavcodec-dev
+    - libavformat-dev
+    - uuid-dev
+    - libgcrypt-dev
+    - xxd
+    - zsh
+    - python3-full
+    - python3-pip
+    - python3-setuptools
+    - python3-bcrypt
+    - python3-cryptography
+    - python3-lgpio
+    - pipx
+    - thefuck
+  loop_control:
+    label: "{{ item }}"
+- name: Reboot if required
+  ansible.builtin.import_tasks:
+    file: Generic tasks/reboot.yaml

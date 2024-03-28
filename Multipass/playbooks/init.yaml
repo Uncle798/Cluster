@@ -4,6 +4,7 @@
   become: true
   become_method: sudo
   remote_user: branson
+  gather_facts: false
   vars_files: 
     /Users/ericbranson/Documents/Cluster/Multipass/vault_vars.yaml
   vars: 
@@ -13,7 +14,6 @@
       vault='Ansible',
       service_account_token=auth_token)
       }}"
-    run_num: 
   tasks:
     - name: Set branson password
       ansible.builtin.expect:
@@ -27,62 +27,15 @@
       ansible.builtin.set_fact:
         password_changed: true
       when: password_change.changed is true
-    - name: Fix network start delay
-      ansible.builtin.copy:
-        src: ~/Documents/Linux/systemd-networkd-wait-online.service
-        dest: /etc/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service
-        owner: root
-        mode: u=rwx,g=rx
-    - name: Set timezone
-      community.general.timezone:
-        name: America/Boise
-    - name: Change password
-      ansible.builtin.user:
-        name: branson
-        password: "{{ branson_password | password_hash('sha512') }}"
-    - name: Branson sudoer
-      community.general.sudoers:
-        name: branson
-        user: branson
-        nopassword: true
-        commands:
-          - ALL
-    - name: Set FQDN
-      ansible.builtin.hostname:
-        name: "{{ inventory_hostname }}.bransonschlegel.com"
-    - name: Update apt
-      ansible.builtin.apt:
-        update_cache: true
-        upgrade: true
-        cache_valid_time: 3600
-    - name: Install thru apt
-      ansible.builtin.apt:
-        name: "{{ item }}"
-      loop: 
-          - zsh
-          - python3-full
-          - python3-pip
-          - python3-setuptools
-          - thefuck
-    - name: Download omz install script
-      ansible.builtin.command:
-        cmd: wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
-        creates: /home/branson/install.sh
-    - name: Run omz install script
-      ansible.builtin.command:
-        cmd: sh /home/branson/install.sh --unattended
-        creates: /home/branson/.oh-my-zsh/oh-my-zsh.sh
-      become: false
-    - name: Set Zsh Config
-      ansible.builtin.copy:
-        src: ~/Documents/Cluster/Multipass/configs/zshrc.conf
-        dest: /home/branson/.zshrc
-        owner: branson
-        mode: ug=rw,
-    - name: Change shell
-      ansible.builtin.user:
-        name: branson
-        shell: /bin/zsh
+    - name: Gather facts
+      ansible.builtin.gather_facts:
+      when: password_changed is true
+    - name: Update and install thru Apt
+      ansible.builtin.import_tasks:
+        file: "../../Generic tasks/installOMZ.yaml"
+    - name: Install OMZ
+      ansible.builtin.import_tasks:
+        file: "../../Generic tasks/installOMZ.yaml"
     - name: Auto remove
       ansible.builtin.apt:
         autoremove: true
