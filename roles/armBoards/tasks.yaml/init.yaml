@@ -280,30 +280,6 @@
         name: shairport-sync
         state: restarted
         enabled: true
-    # - name: Clone wiringOP
-    #   ansible.builtin.git:
-    #     repo: https://github.com/orangepi-xunlong/wiringOP.git
-    #     clone: true
-    #     dest: /home/branson/wiringOP
-    #   when: ansible_facts['ansible_distribution'] is "armbian"
-    #   register: wiringOP
-    # - name: Build wiringOP
-    #   ansible.builtin.command:
-    #     chdir: /home/branson/wiringOP
-    #     cmd: '{{ item }}'
-    #   loop:
-    #     - ./build clean
-    #     - ./build
-    #   when: wiringOp.result is changed
-    # - name: Read gpio
-    #   ansible.builtin.command:
-    #     cmd: gpio readall
-    #   register: gpio_readall
-    #   when: wiringOp.result is changed
-    # - name: Print gpio
-    #   ansible.builtin.debug:
-    #     var: gpio_readall
-    #   when: wiringOp.result is changed
     - name: Auto remove
       ansible.builtin.apt:
         autoremove: true
