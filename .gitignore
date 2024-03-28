@@ -2,7 +2,6 @@
 .DS_Store
 secrets
 
-Multipass/inventory.yaml
-Multipass/scripts/serverNames.txt
+multipassInventory.yaml
 Multipass/log.txt
 Multipass/facts.yaml
