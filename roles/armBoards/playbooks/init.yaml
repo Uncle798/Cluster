@@ -34,91 +34,9 @@
           vault='Ansible',
           service_account_token=auth_token)
           }}"
-    - name: Branson sudoer
-      community.general.sudoers:
-        name: branson
-        user: branson
-        nopassword: true
-        commands:
-          - ALL
-    - name: Branson to sudoers group
-      ansible.builtin.user:
-        groups:
-          - sudo
-          - root
-        name: branson
-        password: "{{ branson_password | password_hash('sha512') }}"
-      become_user: root
-      become_method: sudo
-    - name: Set hostname 
-      ansible.builtin.hostname:
-        name: '{{ inventory_hostname }}'
-    - name: Set timezone
-      community.general.timezone:
-        name: America/Boise
-    - name: Update apt
-      ansible.builtin.apt:
-        update_cache: true
-        upgrade: true
-        cache_valid_time: 3600
-    - name: Check if reboot required
-      ansible.builtin.stat:
-        path: /var/run/reboot-required
-      register: reboot_required_file
-    - name: Reboot if required
-      ansible.builtin.reboot:
-        connect_timeout: 5
-        reboot_timeout: 10
-        post_reboot_delay: 30
-        test_command: uptime
-      when: reboot_required_file.stat.exists == true
-    - name: Install thru apt
-      ansible.builtin.apt:
-        name: '{{ item }}'
-      loop: 
-        - build-essential
-        - git
-        - openssh-client
-        - openssh-server
-        - alsa-base
-        - autoconf
-        - automake
-        - libpopt-dev
-        - libconfig-dev
-        - libasound2-dev
-        - avahi-daemon
-        - libavahi-client-dev
-        - libssl-dev
-        - libsoxr-dev
-        - libplist-dev
-        - libsodium-dev
-        - libavutil-dev
-        - libavcodec-dev
-        - libavformat-dev
-        - uuid-dev
-        - libgcrypt-dev
-        - xxd
-        - zsh
-        - python3-full
-        - python3-pip
-        - python3-setuptools
-        - python3-bcrypt
-        - python3-cryptography
-        - python3-lgpio
-        - pipx
-      loop_control:
-        label: "{{ item }}"
-    - name: Check if reboot required 2
-      ansible.builtin.stat:
-        path: /var/run/reboot-required
-      register: reboot_required_file
-    - name: Reboot if required
-      ansible.builtin.reboot:
-        connect_timeout: 5
-        reboot_timeout: 10
-        post_reboot_delay: 30
-        test_command: uptime
-      when: reboot_required_file.stat.exists == true
+    - name: Set defaults and install thru apts
+      ansible.builtin.import_tasks:
+        file: "../../tasks/init.yaml"
     - name: Generate SSH keys
       community.crypto.openssh_keypair:
         path: '{{ ssh_key_path }}'
@@ -129,34 +47,9 @@
       async: 600
       poll: 0
       register: ssh_keys_async
-    - name: Pipx ensure path
-      ansible.builtin.command:
-        cmd: pipx ensurepath
-      become: false
-    - name: Install thru pipx
-      community.general.pipx:
-        name: thefuck
-        state: present
-      become: false
-    - name: Download install script
-      ansible.builtin.command:
-        cmd: wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
-        creates: /home/branson/install.sh
-    - name: Run omzInstall script
-      ansible.builtin.command:
-        cmd: sh /home/branson/install.sh --unattended
-        creates: /home/branson/.oh-my-zsh/oh-my-zsh.sh
-      become: false
-    - name: Set Zsh Config
-      ansible.builtin.copy:
-        src: ~/Documents/Cluster/Multipass/configs/zshrc.conf
-        dest: /home/branson/.zshrc
-        owner: branson
-        mode: '644'
-    - name: Change shell
-      ansible.builtin.user:
-        name: branson
-        shell: /bin/zsh
+    - name: Install OMZ
+      ansible.builtin.import_tasks:
+        installOMZ.yaml
     - name: Clone wiringPi
       ansible.builtin.git:
         repo: https://github.com/WiringPi/WiringPi.git
@@ -167,9 +60,6 @@
         cmd: ./build debian
         chdir: /home/branson/wiringPi
       register: wiringPi_build_result
-    - name: Print last line of wiringPi_build_result
-      ansible.builtin.debug:
-        var: "{{ wiringPi_build_result }}"
     - name: Install wiring pi
       ansible.builtin.apt:
         deb: /home/branson/wiringPi/debian-template/wiringpi_3.1_arm64.deb
@@ -209,59 +99,7 @@
         vault='Ansible',
         service_account_token=auth_token) 
         }}"
-    - name: Clone nqptp
-      ansible.builtin.git:
-        repo: https://github.com/mikebrady/nqptp.git
-        clone: true
-        dest: /home/branson/nqptp
-    - name: Nqptp autoreconf 
-      ansible.builtin.command:
-        chdir: /home/branson/nqptp
-        cmd: '{{ item }}'
-      loop:
-        - autoreconf -fi
-        - ./configure --with-systemd-startup
-        - make
-    - name: Install nqptp
-      ansible.builtin.command:
-        cmd: make install
-        chdir: /home/branson/nqptp
-      become: true
-    - name: Enable nqptp
-      ansible.builtin.systemd_service:
-        name: nqptp
-        state: restarted
-        enabled: true
-    - name: Clone shairport-sync
-      ansible.builtin.git:
-        repo: https://github.com/mikebrady/shairport-sync.git
-        clone: true
-        dest: /home/branson/shairport-sync
-    - name: Shairport-sync autoreconf
-      ansible.builtin.command:
-        chdir: /home/branson/shairport-sync
-        cmd: '{{ item }}'
-      loop:
-        - autoreconf -fi
-        - ./configure --sysconfdir=/etc --with-alsa --with-soxr --with-avahi --with-ssl=openssl --with-systemd --with-airplay-2
-        - make
-    - name: Install shairport-sync
-      ansible.builtin.command:
-        chdir: /home/branson/shairport-sync
-        cmd: make install
-      become: true
-    - name: Make scripts dir
-      ansible.builtin.file:
-        state: directory
-        path: /home/branson/scripts
-        owner: branson
-        mode: a=rwx
-    - name: Make log file
-      ansible.builtin.file:
-        state: touch
-        path: /home/branson/shairport-sync/log.log
-        owner: branson
-        mode: a=rw
+ 
     - name: Copy over conf file
       ansible.builtin.copy:
         src: /Users/ericbranson/Documents/Cluster/armBoards/shairport-sync.conf
@@ -269,54 +107,6 @@
         mode: a=rw
       # vars:
       #   airplay_name: "{{ hostvars | regex('/[A-Z-_\&](?=[a-z0-9]+)|[A-Z-_\&]+(?![a-z0-9])/g') }}"
-    - name: Copy over relay on scripts
-      ansible.builtin.copy:
-        src: /Users/ericbranson/Documents/Cluster/armBoards/scripts
-        dest: /home/branson/
-        mode: ugo=rwx
-        owner: branson
-    - name: Enable shairport-sync
-      ansible.builtin.systemd_service:
-        name: shairport-sync
-        state: restarted
-        enabled: true
-    # - name: Clone wiringOP
-    #   ansible.builtin.git:
-    #     repo: https://github.com/orangepi-xunlong/wiringOP.git
-    #     clone: true
-    #     dest: /home/branson/wiringOP
-    #   when: ansible_facts['ansible_distribution'] is "armbian"
-    #   register: wiringOP
-    # - name: Build wiringOP
-    #   ansible.builtin.command:
-    #     chdir: /home/branson/wiringOP
-    #     cmd: '{{ item }}'
-    #   loop:
-    #     - ./build clean
-    #     - ./build
-    #   when: wiringOp.result is changed
-    # - name: Read gpio
-    #   ansible.builtin.command:
-    #     cmd: gpio readall
-    #   register: gpio_readall
-    #   when: wiringOp.result is changed
-    # - name: Print gpio
-    #   ansible.builtin.debug:
-    #     var: gpio_readall
-    #   when: wiringOp.result is changed
-    - name: Auto remove
-      ansible.builtin.apt:
-        autoremove: true
-    - name: Check if reboot required 3
-      ansible.builtin.stat:
-        path: /var/run/reboot-required
-      register: reboot_required_file
-    - name: Reboot if required 3
-      ansible.builtin.reboot:
-        connect_timeout: 5
-        reboot_timeout: 10
-        post_reboot_delay: 30
-        test_command: uptime
-      when: reboot_required_file.stat.exists == true
+
 ...
         
