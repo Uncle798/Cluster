@@ -37,68 +37,13 @@
     - name: Set defaults and install thru apts
       ansible.builtin.import_tasks:
         file: "../../tasks/init.yaml"
-    - name: Generate SSH keys
-      community.crypto.openssh_keypair:
-        path: '{{ ssh_key_path }}'
-        owner: branson
-        mode: u=rw,go=r
-        passphrase: branson_password
-        state: present
-      async: 600
-      poll: 0
-      register: ssh_keys_async
     - name: Install OMZ
       ansible.builtin.import_tasks:
-        installOMZ.yaml
-    - name: Clone wiringPi
-      ansible.builtin.git:
-        repo: https://github.com/WiringPi/WiringPi.git
-        clone: true
-        dest: /home/branson/wiringPi
-    - name: Build wiringPi
-      ansible.builtin.command:
-        cmd: ./build debian
-        chdir: /home/branson/wiringPi
-      register: wiringPi_build_result
-    - name: Install wiring pi
-      ansible.builtin.apt:
-        deb: /home/branson/wiringPi/debian-template/wiringpi_3.1_arm64.deb
-    - name: Check if keys are done
-      ansible.builtin.async_status:
-        jid: "{{ ssh_keys_async.ansible_job_id }}"
-      register: job_result
-      until: job_result.finished
-      retries: 100
-      delay: 20
-      become: true
-      vars:
-        ansible_async_dir: '{{ ssh_keys_async.results_file | dirname }}'
-    - name: Slurp key
-      ansible.builtin.slurp:
-        src: '{{ ssh_key_pub }}'
-      register: pub_key
-    - name: Set keys
-      ansible.posix.authorized_key:
-        user: branson
-        state: present
-        key: '{{ pub_key.content | b64decode }}'
-        exclusive: true
-    - name: Get keys for mac
-      ansible.builtin.shell:
-        cmd: "ssh-keyscan {{ item }} >> ~/.ssh/known_hosts"
-      loop: "{{ groups['armBoards'] }}"
-      delegate_to: ericsMac 
-      delegate_facts: true
-      connection: local
-      become: true
-      become_user: ericbranson
-      vars:
-        ansible_become_password: "{{ lookup('community.general.onepassword', 
-        'macMini',
-        field='password',
-        vault='Ansible',
-        service_account_token=auth_token) 
-        }}"
+        file: "../../../tasks/installOMZ.yaml"
+    - name: Install wiringPi
+      ansible.builtin.import_tasks:
+        file: "../tasks/installWiringPi.yaml"
+
  
     - name: Copy over conf file
       ansible.builtin.copy:

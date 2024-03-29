@@ -4,9 +4,9 @@
   become: true
   remote_user: branson
   become_method: sudo
-  gather_facts: false # for initial run need to use bad "branson" password
+  gather_facts: true # for initial run need to use bad "branson" password
   vars_files: 
-    /Users/ericbranson/Documents/Cluster/chromeBoxes/vault_vars.yaml
+    /Users/ericbranson/Documents/Cluster/vault_vars.yaml
   vars:
     ansible_become_password: "{{ branson_password }}"
     branson_password: "{{ lookup('community.general.onepassword',
@@ -39,10 +39,10 @@
       when: password_change.changed is true
     - name: Gather facts
       ansible.builtin.gather_facts:
-      when: password_changed is true
+      when: password_changed is undefined
     - name: Update and install thru Apt
       ansible.builtin.import_tasks:
-        file: "../../tasks/installOMZ.yaml"
+        file: "../tasks/installOMZ.yaml"
     - name: Generate SSH keys
       community.crypto.openssh_keypair:
         path: '{{ ssh_key_path }}'
@@ -55,7 +55,7 @@
       register: ssh_keys_async
     - name: Install OMZ
       ansible.builtin.import_tasks:
-        file: "../../tasks/installOMZ.yaml"
+        file: "../tasks/installOMZ.yaml"
     - name: Check if keys are done
       ansible.builtin.async_status:
         jid: "{{ ssh_keys_async.ansible_job_id }}"

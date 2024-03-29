@@ -1,0 +1,12 @@
+- name: Download K3s install script
+  ansible.builtin.get_url:
+    url: https://get.k3s.io/
+    dest: /home/branson/k3s-install.sh
+    owner: branson
+    mode: "ug=rwx,o=rx"
+- name: Run install script
+  ansible.builtin.command:
+    cmd: /home/branson/k3s-install.sh
+    creates: /etc/rancher/k3s
+  environment: 
+    INSTALL_K3S_SKIP_START: "true"

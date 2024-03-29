@@ -1,0 +1,24 @@
+- name: Generate SSH keys
+  community.crypto.openssh_keypair:
+    path: '{{ ssh_key_path }}'
+    owner: branson
+    mode: "u=rw,go=r"
+    passphrase: branson_password
+    state: present
+- name: Slurp key
+  ansible.builtin.slurp:
+    src: '{{ ssh_key_pub }}'
+  register: pub_key
+- name: Set keys
+  ansible.posix.authorized_key:
+    user: branson
+    state: present
+    key: '{{ pub_key.content | b64decode }}'
+    exclusive: true
+- name: Get keys for mac
+  ansible.builtin.shell:
+    cmd: "ssh-keyscan {{ item }} >> ~/.ssh/known_hosts"
+  loop: "{{ groups['armBoards'] }}"
+  delegate_to: ericsMac 
+  delegate_facts: true
+  connection: local
