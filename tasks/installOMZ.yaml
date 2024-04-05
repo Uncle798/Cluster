@@ -9,7 +9,7 @@
   become: false
 - name: Set Zsh Config
   ansible.builtin.copy:
-    src: ~/Documents/Cluster/Multipass/configs/zshrc.conf
+    src: "/Users/ericbranson/Documents/Cluster/generic configs/zshrc.conf"
     dest: /home/branson/.zshrc
     owner: branson
     mode: ug=rw,
