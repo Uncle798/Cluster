@@ -2,9 +2,9 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="17.5in"
-   height="8.5in"
-   viewBox="0 0 17.5 8.5"
+   width="17in"
+   height="11in"
+   viewBox="0 0 17 11"
    version="1.1"
    id="svg1"
    inkscape:version="1.3.2 (091e20e, 2023-11-25)"
@@ -34,17 +34,17 @@
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1">
     <sodipodi:guide
-       position="0,215.9"
+       position="0,8.4999999"
        orientation="0,1680"
        id="guide1"
        inkscape:locked="false" />
     <sodipodi:guide
-       position="444.5,215.9"
+       position="17.5,8.4999999"
        orientation="816,0"
        id="guide2"
        inkscape:locked="false" />
     <sodipodi:guide
-       position="444.5,0"
+       position="17.5,0"
        orientation="0,-1680"
        id="guide3"
        inkscape:locked="false" />
@@ -82,29 +82,29 @@
        id="rect4"
        width="17.500006"
        height="8.5000029"
-       x="0"
-       y="9.5613075e-08"
+       x="-0.25000286"
+       y="1.2499986"
        ry="0.50000018" />
     <text
        xml:space="preserve"
        style="font-size:0.194445px;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.0104167"
-       x="7.9405336"
-       y="0.4224112"
+       x="7.6905308"
+       y="1.6724097"
        id="text4"><tspan
          sodipodi:role="line"
          style="fill:#000000;fill-opacity:1;stroke-width:0.0104167"
-         x="7.9405336"
-         y="0.4224112"
+         x="7.6905308"
+         y="1.6724097"
          id="tspan5">17.5&quot;x8.5&quot;</tspan><tspan
          sodipodi:role="line"
          style="fill:#000000;fill-opacity:1;stroke-width:0.0104167"
-         x="7.9405336"
-         y="0.66546744"
+         x="7.6905308"
+         y="1.915466"
          id="tspan6">.5&quot; radius</tspan></text>
     <g
        id="g7"
        inkscape:label="Chromebox Outline"
-       transform="translate(-1.4628772,-0.23535487)">
+       transform="translate(-1.71288,1.0146436)">
       <g
          id="g2209"
          inkscape:label="chromebox05"
@@ -170,7 +170,7 @@
     <g
        id="g13"
        inkscape:label="Chromebox Outline"
-       transform="translate(-4.3886314,-0.23535487)">
+       transform="translate(-4.6386342,1.0146436)">
       <g
          id="g12"
          inkscape:label="chromebox05"
@@ -236,7 +236,7 @@
     <g
        id="g19"
        inkscape:label="Chromebox Outline"
-       transform="translate(-7.3143856,-0.23340751)">
+       transform="translate(-7.5643885,1.016591)">
       <g
          id="g18"
          inkscape:label="chromebox05"
@@ -302,7 +302,7 @@
     <g
        id="g25"
        inkscape:label="Chromebox Outline"
-       transform="translate(7.3143855,-0.23535487)">
+       transform="translate(7.0643826,1.0146436)">
       <g
          id="g24"
          inkscape:label="chromebox05"
@@ -368,7 +368,7 @@
     <g
        id="g31"
        inkscape:label="Chromebox Outline"
-       transform="translate(1.4628771,-0.23535487)">
+       transform="translate(1.2128742,1.0146436)">
       <g
          id="g30"
          inkscape:label="chromebox05"
@@ -434,7 +434,7 @@
     <g
        id="g37"
        inkscape:label="Chromebox Outline"
-       transform="translate(4.3886313,-0.23535487)">
+       transform="translate(4.1386284,1.0146436)">
       <g
          id="g36"
          inkscape:label="chromebox05"
