@@ -4,10 +4,14 @@ chromeboxes:
       ansible_host: 192.168.4.6
     chromebox02.local:
       ansible_host: 192.168.4.7
+    chromebox03.local:
+      ansible_host: 192.168.4.16
     chromebox11.local:
       ansible_host: 192.168.4.51
     chromebox12.local:
       ansible_host: 192.168.4.52
+    chromebox13.local:
+      ansible_host: 192.168.4.10
     chromebox15.local:
       ansible_host: 192.168.1.177
 armBoards:
