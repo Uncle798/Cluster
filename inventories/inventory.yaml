@@ -1,19 +1,19 @@
 chromeboxes:
   hosts:
     chromebox01.local:
-      ansible_host: 192.168.4.6
+      ansible_host: 192.168.4.17
     chromebox02.local:
-      ansible_host: 192.168.4.7
+      ansible_host: 192.168.4.18
     chromebox03.local:
-      ansible_host: 192.168.4.16
+      ansible_host: 192.168.4.19
     chromebox11.local:
-      ansible_host: 192.168.4.51
+      ansible_host: 192.168.4.20
     chromebox12.local:
-      ansible_host: 192.168.4.52
+      ansible_host: 192.168.4.51
     chromebox13.local:
-      ansible_host: 192.168.4.10
-    chromebox15.local:
-      ansible_host: 192.168.1.177
+      ansible_host: 192.168.4.52
+    # chromebox15.local:
+    #   ansible_host: 192.168.1.194
 armBoards:
   hosts:
     kitchenStereo.local:
@@ -50,7 +50,6 @@ k3s_cluster:
     server:
       hosts:
         chromebox01.local:
-          ansible_host: 192.168.4.6
         chromebox02.local:
         chromebox03.local:
     agent:
