@@ -7,11 +7,11 @@ chromeboxes:
     chromebox03.local:
       ansible_host: 192.168.4.19
     chromebox11.local:
-      ansible_host: 192.168.4.20
-    chromebox12.local:
       ansible_host: 192.168.4.51
-    chromebox13.local:
+    chromebox12.local:
       ansible_host: 192.168.4.52
+    chromebox13.local:
+      ansible_host: 192.168.4.20
     # chromebox15.local:
     #   ansible_host: 192.168.1.194
 armBoards:
@@ -29,15 +29,10 @@ myMac:
     ericsMac:
       ansible_host: 192.168.1.51
       become_user: ericbranson
-      become_pass: "{{ lookup('community.general.onepassword',
-        'macMini',
-        field='password',
-        vault='Ansible',
-        service_account_token=auth_token)
-        }}"
       ansible_python_interpreter: auto_silent
       ansible_connection: local
-
+      become_method: sudo
+      ansible_become_password: "{{ mac_become_pass }}"
 audio_players:
   chromebox15.local:
   kitchenStereo.local:
