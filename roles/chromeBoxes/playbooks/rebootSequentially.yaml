@@ -1,0 +1,15 @@
+- name: Reboot cluster
+  hosts: chromeboxes
+  become: true
+  remote_user: branson
+  become_method: sudo
+  gather_facts: false
+  serial: 1
+  order: sorted
+  tasks:
+  - name: Reboot {{ inventory_hostname }}
+    ansible.builtin.reboot:
+      connect_timeout: 5
+      reboot_timeout: 10
+      post_reboot_delay: 30
+      test_command: uptime
