@@ -1,0 +1,56 @@
+---
+- name: Initialize chromebox
+  hosts: chromeboxes
+  become: true
+  remote_user: branson
+  become_method: sudo
+  gather_facts: true # for initial run need to use bad "branson" password
+  vars_files: 
+    /Users/ericbranson/Documents/Cluster/vault_vars.yaml
+  vars:
+    connect_token: "eyJhbGciOiJFUzI1NiIsImtpZCI6Imd0Mmh1bDVlbDM1cmtnYTdrZzdjYmF4aXd5IiwidHlwIjoiSldUIn0.eyIxcGFzc3dvcmQuY29tL2F1dWlkIjoiWkZIMkwyQkRDWkQ1VkdIVU81VU5OUkxPVVkiLCIxcGFzc3dvcmQuY29tL2Z0cyI6WyJ2YXVsdGFjY2VzcyJdLCIxcGFzc3dvcmQuY29tL3Rva2VuIjoienkwbDctVEw3VFJSeXBWVVRaOFM0QlRGdDF3MHpaZUQiLCIxcGFzc3dvcmQuY29tL3Z0cyI6W3siYSI6MTAwOCwidSI6Imt4amx6Z25rNnB1aHFkZ3FidmVpbmxhMnZ5In1dLCJhdWQiOlsiY29tLjFwYXNzd29yZC5jb25uZWN0Il0sImlhdCI6MTcxMzY2NTg5OCwiaXNzIjoiY29tLjFwYXNzd29yZC5iNSIsImp0aSI6InV6ZWxkd2k1ZGxqMnVnbTJ2NWlkeTJuYmttIiwic3ViIjoiREY0RkNYNU5OUkE0RkVCNVo1SDJLRVo3REUifQ.PwgXiV4fLf1m3qD2pFVUiXXsuAOzyejwa2Recv23qomhp-t4zqMW7qW2hOw8XefoFp_0byTuB1hFDJnAvLQB5Q"
+    ansible_become_password: "{{ branson_password }}"
+    branson_password: "{{ lookup('community.general.onepassword',
+      'chromeboxes',
+      field='password',
+      vault='Ansible',
+      service_account_token=auth_token)
+      }}"
+    ssh_key_path: "/home/branson/.ssh/{{ inventory_hostname }}_branson_id"
+    ssh_key_pub: '{{ ssh_key_path }}.pub'
+  collections:
+  - onepassword.connect
+  tasks:
+    - name: Gather ansible_facts
+      ansible.builtin.gather_facts:
+      vars:
+        ansible_become_password: branson
+      when: password_changed is undefined
+    - name: Set branson password
+      ansible.builtin.expect:
+        command: passwd branson
+        responses:
+          (?i)password: "{{ branson_password }}"
+      no_log: true
+      when: password_changed is undefined
+      register: password_change
+      vars: 
+        ansible_become_password: branson
+    - name: Set password change to true
+      ansible.builtin.set_fact:
+        password_changed: true
+      when: password_change.changed is true
+    - name: Gather facts
+      ansible.builtin.gather_facts:
+      when: password_changed is undefined
+    - name: Set hostname
+      ansible.builtin.hostname:
+        name: "{{ inventory_hostname }}"
+    - name: initial
+      ansible.builtin.import_tasks:
+        file: "/Users/ericbranson/Documents/Cluster/tasks/init.yaml"
+    - name: Install OMZ
+      ansible.builtin.import_tasks:
+        file: "/Users/ericbranson/Documents/Cluster/tasks/installOMZ.yaml"
+    
+... 
