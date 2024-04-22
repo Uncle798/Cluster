@@ -1,6 +1,6 @@
 ---
 - name: Initialize chromebox
-  hosts: chromebox13.local
+  hosts: chromeboxes
   become: true
   remote_user: branson
   become_method: sudo
@@ -8,8 +8,9 @@
   vars_files: 
     /Users/ericbranson/Documents/Cluster/vault_vars.yaml
   vars:
+    wireless_interface: "{{ ansible_facts['interfaces'] | select('contains', 'wl') | list }}"
   collections:
-  - onepassword.connect
+    - onepassword.connect
   tasks:
     - name: Set hostname
       ansible.builtin.hostname:
@@ -20,5 +21,6 @@
     - name: Install OMZ
       ansible.builtin.import_tasks:
         file: "/Users/ericbranson/Documents/Cluster/tasks/installOMZ.yaml"
-    
+
+      
 ... 
