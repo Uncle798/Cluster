@@ -12,8 +12,38 @@ chromeboxes:
       ansible_host: 192.168.4.52
     chromebox13.local:
       ansible_host: 192.168.4.20
-    # chromebox15.local:
-    #   ansible_host: 192.168.1.194
+    chromebox14.local:
+      ansible_host: 192.168.4.22
+      ansible_become_password: branson
+    chromebox15.local:
+      ansible_host: 192.168.4.21
+      ansible_become_password: branson
+
+
+haproxyCluster:
+  hosts:
+    chromebox14.local:
+    chromebox15.local:
+
+myoffice:
+  hosts:
+    chromebox01.local:
+    chromebox02.local:
+    chromebox03.local:
+    chromebox11.local:
+    chromebox12.local:
+    chromebox13.local:
+
+downstairs_living_room:
+  hosts:
+    ericsMac:
+    chromebox14.local:
+    chromebox15.local:
+
+garage:
+  hosts:
+    chromebox05.local
+
 armBoards:
   hosts:
     kitchenStereo.local:
@@ -38,7 +68,7 @@ audio_players:
   kitchenStereo.local:
 
 audio_servers:
-  chromebox15.local:
+
 
 k3s_cluster:
   children:
@@ -52,17 +82,11 @@ k3s_cluster:
         chromebox11.local:
         chromebox12.local:
         chromebox13.local:
-
   vars:
     ansible_port: 22
     ansible_user: branson
-    #k3s_version: v1.26.9+k3s1
-    token: "{{ lookup('community.general.onepassword',
-        'k3s cluster secret',
-        field='password',
-        vault='Ansible',
-        service_account_token=auth_token)
-        }}"
+    k3s_version: v1.29.2+k3s1
+    token: "{{ k3s_token }}"
     api_endpoint: "{{ hostvars[groups['server'][0]]['ansible_host'] | default(groups['server'][0]) }}"
     extra_server_args: ""
     extra_agent_args: ""
