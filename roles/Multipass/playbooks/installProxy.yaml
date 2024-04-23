@@ -107,11 +107,11 @@
         mode: '640'
       vars:
         cloudflare_api_token: "{{ lookup('community.general.onepassword',
-      'Cloudflare DNS zone key',
-      field='credential',
-      vault='Ansible',
-      service_account_token=auth_token)
-      }}"
+          'Cloudflare DNS zone key',
+          field='credential',
+          vault='Ansible',
+          service_account_token=auth_token)
+          }}"
     - name: Copy over certbot cli.ini
       ansible.builtin.copy:
         src: /Users/ericbranson/Documents/Cluster/Multipass/configs/certbot-cli.ini
