@@ -16,7 +16,7 @@
       - ALL
 - name: Setup wifi
   ansible.builtin.command:
-    cmd: "sudo nmcli device wifi connect 'Wifi Material' password {{ wifi_pass }}"
+    cmd: "sudo nmcli device wifi connect 'Branson Cluster' password {{ wifi_pass }}"
 - name: Update apt
   ansible.builtin.apt:
     update_cache: true
