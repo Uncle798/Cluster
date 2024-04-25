@@ -1,6 +1,6 @@
 ---
 - name: Initialize chromebox
-  hosts: chromeboxes
+  hosts: chromebox05.local
   become: true
   remote_user: branson
   become_method: sudo
@@ -17,10 +17,11 @@
         name: "{{ inventory_hostname }}"
     - name: init
       ansible.builtin.import_tasks:
-        file: "/Users/ericbranson/Documents/Cluster/tasks/init.yaml"
+        file: "../tasks/init.yaml"
     - name: Install OMZ
       ansible.builtin.import_tasks:
-        file: "/Users/ericbranson/Documents/Cluster/tasks/installOMZ.yaml"
-
-      
+        file: "../tasks/installOMZ.yaml"
+    - name: Install camera server
+      ansible.builtin.import_tasks:
+        file: "../tasks/installCameraServer.yaml"
 ... 
