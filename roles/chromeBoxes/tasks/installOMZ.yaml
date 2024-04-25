@@ -1,0 +1,19 @@
+- name: Download omz install script
+  ansible.builtin.command:
+    cmd: wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
+    creates: /home/branson/install.sh
+- name: Run omz install script
+  ansible.builtin.command:
+    cmd: sh /home/branson/install.sh --unattended
+    creates: /home/branson/.oh-my-zsh/oh-my-zsh.sh
+  become: false
+- name: Set Zsh Config
+  ansible.builtin.copy:
+    src: "/Users/ericbranson/Documents/Cluster/generic configs/zshrc.conf"
+    dest: /home/branson/.zshrc
+    owner: branson
+    mode: ug=rw,
+- name: Change shell
+  ansible.builtin.user:
+    name: branson
+    shell: /bin/zsh

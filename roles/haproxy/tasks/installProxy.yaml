@@ -68,7 +68,7 @@
     mode: ug=rx
 - name: Configure certbot
   ansible.builtin.template:
-    src: ~/Documents/Cluster/Multipass/configs/certbot-initial.conf.j2
+    src: ../templates/certbot-initial.conf.j2
     dest: "{{ item }}"
     owner: certbot
     mode: ug=r
@@ -77,7 +77,7 @@
     - /home/certbot/certbot.conf
 - name: Cloudflare credintials
   ansible.builtin.template:
-    src: /Users/ericbranson/Documents/Cluster/Multipass/configs/certbot-cloudflair.ini.j2
+    src: ../templates/certbot-cloudflair.ini.j2
     dest: /home/certbot/certbot-cloudflair.ini
     owner: certbot
     mode: '640'
@@ -90,13 +90,13 @@
       }}"
 - name: Copy over certbot cli.ini
   ansible.builtin.copy:
-    src: /Users/ericbranson/Documents/Cluster/Multipass/configs/certbot-cli.ini
+    src: ../templates/certbot-cli.ini
     dest: /etc/letsencrypt/cli.ini
     owner: certbot
     mode: 440
 - name: Create keepalived conf file
   ansible.builtin.template:
-    src: /Users/ericbranson/Documents/Cluster/Multipass/configs/keepalived_proxy.conf.j2
+    src: ../templates/keepalived_proxy.conf.j2
     dest: /etc/keepalived/keepalived.conf
 - name: Add haproxy folders
   ansible.builtin.file:
@@ -105,12 +105,12 @@
     mode: ug=rx
 - name: Template out haproxy.conf
   ansible.builtin.template:
-    src: ~/Documents/Cluster/Multipass/configs/haproxy.conf.j2
+    src: ../templates/haproxy.conf.j2
     dest: /etc/haproxy/haproxy.cnf
     mode: ug=rx
 - name: Copy over inadyn.conf
   ansible.builtin.copy:
-    src: ~/Documents/Cluster/Multipass/configs/inadyn.conf
+    src: ../templates/inadyn.conf
     dest: /etc/inadyn.conf
     mode: ug=r
 - name: Enable everything
@@ -131,4 +131,4 @@
   delay: 20
 - name: Run certbot
   ansible.builtin.command:
-    cmd: certbot certonly
+    cmd: certbot certonly  --dry-run

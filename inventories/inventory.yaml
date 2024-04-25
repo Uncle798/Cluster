@@ -1,3 +1,4 @@
+#hardware
 chromeboxes:
   hosts:
     chromebox01.local:
@@ -6,6 +7,8 @@ chromeboxes:
       ansible_host: 192.168.4.18
     chromebox03.local:
       ansible_host: 192.168.4.19
+    chromebox05.local:
+      ansible_host: 192.168.4.25
     chromebox11.local:
       ansible_host: 192.168.4.51
     chromebox12.local:
@@ -19,12 +22,28 @@ chromeboxes:
       ansible_host: 192.168.4.21
       ansible_become_password: branson
 
-
-haproxyCluster:
+armBoards:
   hosts:
-    chromebox14.local:
-    chromebox15.local:
+    kitchenStereo.local:
+      ansible_host: 192.168.1.14
+      ansible_ssh_pass: "{{ lookup('community.general.onepassword',
+        'music pi',
+        field='password',
+        vault='Ansible',
+        service_account_token=auth_token)
+        }}"     
 
+myMac:
+  hosts:
+    ericsMac:
+      ansible_host: 192.168.1.51
+      become_user: ericbranson
+      ansible_python_interpreter: auto_silent
+      ansible_connection: local
+      become_method: sudo
+      ansible_become_password: "{{ mac_become_pass }}"
+
+#Locations
 myoffice:
   hosts:
     chromebox01.local:
@@ -42,33 +61,23 @@ downstairs_living_room:
 
 garage:
   hosts:
-    chromebox05.local
+    chromebox05.local:
 
-armBoards:
+#Software
+haproxyCluster:
   hosts:
-    kitchenStereo.local:
-      ansible_host: 192.168.1.14
-      ansible_ssh_pass: "{{ lookup('community.general.onepassword',
-        'music pi',
-        field='password',
-        vault='Ansible',
-        service_account_token=auth_token)
-        }}"     
-myMac:
-  hosts:
-    ericsMac:
-      ansible_host: 192.168.1.51
-      become_user: ericbranson
-      ansible_python_interpreter: auto_silent
-      ansible_connection: local
-      become_method: sudo
-      ansible_become_password: "{{ mac_become_pass }}"
+    chromebox14.local:
+    chromebox15.local:
+    chromebox05.local:
+
 audio_players:
+  chromebox14.local:
   chromebox15.local:
   kitchenStereo.local:
 
-audio_servers:
-
+video_servers:
+  chromebox05.local:
+  chromebox15.local:
 
 k3s_cluster:
   children:

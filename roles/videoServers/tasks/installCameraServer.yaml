@@ -1,0 +1,35 @@
+- name: Install thru apt
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 216000 # 1h
+    name: "{{ item }}"
+  loop:
+    - v4l-utils
+    - ffmpeg
+- name: Add branson to video group
+  ansible.builtin.user:
+    name: branson
+    groups: video
+    append: true  
+- name: Make mediamtx directory
+  ansible.builtin.file:
+    path: /home/branson/mediamtx
+    state: directory
+    mode: '0755'
+- name: Get mediamtx
+  ansible.builtin.get_url:
+    url: https://github.com/bluenviron/mediamtx/releases/download/v1.8.0/mediamtx_v1.8.0_linux_amd64.tar.gz
+    dest: /home/branson/mediamtx/mediamtx.tar.gz
+- name: Unpack mediamtx
+  ansible.builtin.unarchive:
+    dest: /home/branson/mediamtx
+    remote_src: true
+    src: /home/branson/mediamtx/mediamtx.tar.gz
+- name: Remove Tar
+  ansible.builtin.file:
+    path: /hoome/branson/mediamtx/mediamtx.tar.gz
+    state: absent
+- name: Copy over mediamtx config
+  ansible.builtin.template:
+    src: ../templates/mediamtx.yml.j2  
+    dest: /home/branson/mediamtx/mediamtx.yml
