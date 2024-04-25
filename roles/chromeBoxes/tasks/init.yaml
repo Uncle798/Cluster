@@ -14,9 +14,6 @@
     nopassword: true
     commands:
       - ALL
-- name: Setup wifi
-  ansible.builtin.command:
-    cmd: "sudo nmcli device wifi connect 'Branson Cluster' password {{ wifi_pass }}"
 - name: Update apt
   ansible.builtin.apt:
     update_cache: true
@@ -66,3 +63,6 @@
 - name: Reboot if required
   ansible.builtin.import_tasks:
     file: ./reboot.yaml
+- name: Setup wifi
+  ansible.builtin.command:
+    cmd: "sudo nmcli device wifi connect 'bransoncluster' password {{ wifi_pass }}"
