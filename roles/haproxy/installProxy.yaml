@@ -1,6 +1,6 @@
 ---
 - name: Initialize proxy hosts
-  hosts: haproxyCluster
+  hosts: haproxy_cluster
   remote_user: branson
   become: true
   become_method: sudo
@@ -113,6 +113,9 @@
         state: directory
         path: /etc/haproxy/
         mode: ug=rx
+    - name: k3s_control_cluster
+      ansible.builtin.debug:
+        var: k3s_control_cluster    
     - name: Template out haproxy.conf
       ansible.builtin.template:
         src: ../templates/haproxy.conf.j2

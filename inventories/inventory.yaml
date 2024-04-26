@@ -1,4 +1,4 @@
-#hardware
+# Hardware
 chromeboxes:
   hosts:
     chromebox01.local:
@@ -43,7 +43,7 @@ myMac:
       become_method: sudo
       ansible_become_password: "{{ mac_become_pass }}"
 
-#Locations
+# Locations
 myoffice:
   hosts:
     chromebox01.local:
@@ -52,19 +52,17 @@ myoffice:
     chromebox11.local:
     chromebox12.local:
     chromebox13.local:
-
 downstairs_living_room:
   hosts:
     ericsMac:
     chromebox14.local:
     chromebox15.local:
-
 garage:
   hosts:
     chromebox05.local:
 
-#Software
-haproxyCluster:
+# Software
+haproxy_cluster:
   hosts:
     chromebox14.local:
     chromebox15.local:
