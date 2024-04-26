@@ -10,3 +10,8 @@ keepalived_auth_pass: "{{ vault_keepalived_auth_pass }}"
 haproxy_secret: "{{ vault_haproxy_secret }}"
 haproxy_node_name: "{{ inventory_hostname }}"
 k3s_control_cluster: "{{ groups['k3s_cluster'] | select('contains', 'server') | list }}"
+
+# inadyn
+cloudflare_username: "{{ personal_email }}"
+cloudflare_password: "{{ cloudflare_api_token }}"
+cloudflare_hostname: "cluster.bransonschlegel.com"

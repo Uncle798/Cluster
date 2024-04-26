@@ -68,7 +68,7 @@
     mode: ug=rx
 - name: Configure certbot
   ansible.builtin.template:
-    src: ../templates/certbot-initial.conf.j2
+    src: ../templates/certbot.conf.j2
     dest: "{{ item }}"
     owner: certbot
     mode: ug=r
