@@ -37,7 +37,7 @@ backend certbot
 
 
 frontend k3s_control_front
-    bind {{ haproxy_vip }}:{{ k3sControl_port }}
+    bind {{ haproxy_vip }}:{{ k3s_control_port }}
     default_backend k3s_control_back
 
 backend k3s_control_back
@@ -48,6 +48,6 @@ backend k3s_control_back
     option httpclose
     http-request set-header X-Forwarded-Port %[dst_port]
     http-request add-header X-Forwarded-Proto https if { ssl_fc }
-    {% for host in k3sControl %}
+    {% for host in groups['k3s_cluster']['server'] %}
         server {{ host['inventory_hostname'] }} {{ host['ansible_host'] }}:{{ k3sControl_port }} check
     {% endfor %}
