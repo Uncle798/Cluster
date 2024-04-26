@@ -1,0 +1,7 @@
+provider cloudflare.com {
+    username = {{ cloudflare_username }}
+    password = {{ cloudflare_password }}
+    hostname = {{ cloudflare_hostname }}
+    ttl = 1 # optional, value of 1 is 'automatic'.
+    proxied = false # optional.
+}
