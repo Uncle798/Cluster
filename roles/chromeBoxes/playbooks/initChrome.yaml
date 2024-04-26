@@ -21,7 +21,5 @@
     - name: Install OMZ
       ansible.builtin.import_tasks:
         file: "../tasks/installOMZ.yaml"
-    - name: Install camera server
-      ansible.builtin.import_tasks:
-        file: "../tasks/installCameraServer.yaml"
+
 ... 
