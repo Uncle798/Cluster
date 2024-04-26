@@ -1,11 +1,12 @@
 # keepalived
-interfaces: "{{ ansible_facts['interfaces'] }}"
+interfaces: "{{ ansible_facts['interfaces'] | reject('contains', 'lo') | list}}"
 wireless_interfaces: "{{ ansible_facts['interfaces'] | select('contains', 'wl') | list }}"
-priority_eth: "{{ 255 - (ansible_play_hosts.index(inventory_hostname)* 5) }}"
-priority_wireless: "{{ priority_eth }} - 100"
+priority_eth: "{{ 255-(ansible_play_hosts.index(inventory_hostname)* 5) }}"
+priority_wireless: "{{ 155-(ansible_play_hosts.index(inventory_hostname)* 5) }}"
 keepalived_router_id: 101
 keepalived_auth_pass: "{{ vault_keepalived_auth_pass }}"
 
 # haproxy
 haproxy_secret: "{{ vault_haproxy_secret }}"
 haproxy_node_name: "{{ inventory_hostname }}"
+k3s_control_cluster: "{{ groups['k3s_cluster'] | select('contains', 'server') | list }}"
