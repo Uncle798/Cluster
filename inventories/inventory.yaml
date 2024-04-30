@@ -72,13 +72,18 @@ haproxy_cluster:
     k3s_control_port: 6443
 
 audio_players:
-  chromebox14.local:
-  chromebox15.local:
-  kitchenStereo.local:
+  hosts:
+    chromebox14.local:
+      airplay_name: "Downstairs Stereo"
+    chromebox15.local:
+      airplay_name: "Test Bench"
+    kitchenStereo.local:
+      airplay_name: "Kitchen Stereo"
 
 video_servers:
-  chromebox05.local:
-  chromebox15.local:
+  hosts:
+    chromebox05.local:
+    chromebox15.local:
 
 k3s_cluster:
   children:
