@@ -1,5 +1,5 @@
 - name: Initialize audio players
-  hosts: audio_players
+  hosts: chromebox14.local
   remote_user: branson
   become: true
   become_method: sudo
@@ -10,8 +10,9 @@
   - name: Install thru apt
     ansible.builtin.apt:
       name: "{{ item }}"
+      update_cache: true
+      state: present
     loop:
-      - unzip
       - libvorbis-dev
       - libopus-dev
       - libflac-dev
@@ -70,19 +71,41 @@
       path: /home/branson/shairport-sync/log.log
       owner: branson
       mode: "ug=rw,a=r"
+  - name: Get hardware output devices
+    ansible.builtin.command:
+      cmd: shairport-sync -h
+    register: shairport_sync_h
+  - name: shairport_sync_h
+    ansible.builtin.debug:
+      var: shairport_sync_h['stdout_lines'] | select('contains', 'hw:') | reject('contains', 'HDMI') | replace('"','') | replace('  ','')
   - name: Template out shairport-sync.conf
     ansible.builtin.template:
-      src: ../templates/shairport-sync.conf
+      src: ../templates/shairport-sync.conf.j2
       dest: /etc/shairport-sync.conf
       mode: "ug=rw,a=r"
     vars:
-      airplay_name: "{{ hostvars | regex('/[A-Z-_\\&](?=[a-z0-9]+)|[A-Z-_\\&]+(?![a-z0-9])/g') }}"
+      output_device: "{{ shairport_sync_h['stdout_lines'] | 
+        select('contains', 'hw:') |
+        reject('contains', 'HDMI') |
+        replace('\"','') | 
+        replace('  ','')
+        }}"
   - name: Enable shairport-sync
     ansible.builtin.systemd_service:
       name: shairport-sync
       state: restarted
       enabled: true
+  - name: Copy over /home/branson/snapclient.deb
+    ansible.builtin.copy:
+      src: ./snapclient.deb
+      dest: /home/branson/snapclient.deb
+      mode: 'a=rwx'
   - name: Install snapcast
     ansible.builtin.apt:
-      deb: ../snapclient.deb
+      deb: /home/branson/snapclient.deb
       state: present
+  - name: Add branson to audio group
+    ansible.builtin.user:
+      append: yes
+      groups: audio
+      name: branson

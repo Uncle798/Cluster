@@ -1,3 +1,4 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
 // Sample Configuration File for Shairport Sync
 // Commented out settings are generally the defaults, except where noted.
 // Some sections are operative only if Shairport Sync has been built with the right configuration flags.
@@ -120,7 +121,7 @@ sessioncontrol =
 // --with-alsa
 alsa =
 {	
-//  output_device = "hw:headphones"; // the name of the alsa output device. Use "shairport-sync -h" to discover the names of ALSA hardware devices. Use "alsamixer" or "aplay" to find out the names of devices, mixers, etc.
+  output_device = "{{ output_device[0] }}"; // the name of the alsa output device. Use "shairport-sync -h" to discover the names of ALSA hardware devices. Use "alsamixer" or "aplay" to find out the names of devices, mixers, etc.
 //	mixer_control_name = "PCM"; // the name of the mixer to use to adjust output volume. No default. If not specified, no mixer is used and volume in adjusted in software.
 //	mixer_control_index = 0; // the index of the mixer to use to adjust output volume. Default is 0. The mixer is fully identified by the combination of the mixer_control_name and the mixer_control_index, e.g. "PCM",0 would be such a specification.
 //	mixer_device = "default"; // the mixer_device default is whatever the output_device is. Normally you wouldn't have to use this.
@@ -142,27 +143,6 @@ alsa =
 //	disable_standby_mode_silence_scan_interval = 0.004; // Use this optional advanced setting to control how often the amount of audio remaining in the output buffer should be checked.
 };
 
-// Parameters for the "pw" PipeWire backend.
-// For this section to be operative, Shairport Sync must be built with the following configuration flag:
-// --with-pw
-pw =
-{
-//	application_name = "Shairport Sync"; // Set this to the name that should appear in the Sounds "Applications" or "Volume Levels".
-//	node_name = "Shairport Sync"; // This appears in some PipeWire CLI tool outputs.
-//	sink_target = "<sink target name>"; // Leave this commented out to get the sink target already chosen by the PipeWire system.
-};
-
-// Parameters for the "sndio" audio back end. All are optional.
-// For this section to be operative, Shairport Sync must be built with the following configuration flag:
-// --with-sndio
-sndio =
-{
-//	device = "snd/0"; // optional setting to set the name of the output device. Default is the sndio system default.
-//	rate = 44100; // optional setting  which can be 44100, 88200, 176400 or 352800, but the device must have the capability. Default is 44100.
-//	format = "S16"; // optional setting  which can be "U8", "S8", "S16", "S24", "S24_3LE", "S24_3BE" or "S32", but the device must have the capability. Except where stated using (*LE or *BE), endianness matches that of the processor.
-//	round = <number>; // advanced optional setting to set the period size near to this value
-//	bufsz = <number>; // advanced optional setting to set the buffer size near to this value
-};
 
 // Parameters for the "pa" PulseAudio  backend.
 // For this section to be operative, Shairport Sync must be built with the following configuration flag:
