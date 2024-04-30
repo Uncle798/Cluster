@@ -7,6 +7,16 @@
     - /Users/ericbranson/Documents/Cluster/vault_vars.yaml
     - ../vars/vars.yaml
   tasks:
+  - name: Install thru apt
+    ansible.builtin.apt:
+      name: "{{ item }}"
+    loop:
+      - unzip
+      - libvorbis-dev
+      - libopus-dev
+      - libflac-dev
+      - libvorbisidec-dev
+      - libpulse-dev
   - name: Clone nqptp
     ansible.builtin.git:
       repo: https://github.com/mikebrady/nqptp.git
@@ -72,3 +82,7 @@
       name: shairport-sync
       state: restarted
       enabled: true
+  - name: Install snapcast
+    ansible.builtin.apt:
+      deb: ../snapclient.deb
+      state: present

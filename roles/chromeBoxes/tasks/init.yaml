@@ -58,6 +58,7 @@
     - pipx
     - thefuck
     - network-manager
+    - cmake
   loop_control:
     label: "{{ item }}"
 - name: Reboot if required
