@@ -5,7 +5,6 @@
   become_method: sudo
   vars_files:
     - /Users/ericbranson/Documents/Cluster/vault_vars.yaml
-    - ../vars/vars.yaml
   tasks:
   - name: Install thru apt
     ansible.builtin.apt:
@@ -52,7 +51,7 @@
       cmd: '{{ item }}'
     loop:
       - autoreconf -fi
-      - ./configure --sysconfdir=/etc --with-alsa --with-soxr --with-avahi --with-ssl=openssl --with-systemd --with-airplay-2
+      - ./configure --sysconfdir=/etc --with-alsa --with-soxr --with-avahi --with-ssl=openssl --with-systemd --with-airplay-2 --with-mqtt
       - make
   - name: Install shairport-sync
     ansible.builtin.command:
@@ -75,21 +74,11 @@
     ansible.builtin.command:
       cmd: shairport-sync -h
     register: shairport_sync_h
-  - name: shairport_sync_h
-    ansible.builtin.debug:
-      var: shairport_sync_h['stdout_lines'] | select('contains', 'hw:') | reject('contains', 'HDMI') | replace('"','') | replace('  ','')
   - name: Template out shairport-sync.conf
     ansible.builtin.template:
       src: ../templates/shairport-sync.conf.j2
       dest: /etc/shairport-sync.conf
       mode: "ug=rw,a=r"
-    vars:
-      output_device: "{{ shairport_sync_h['stdout_lines'] | 
-        select('contains', 'hw:') |
-        reject('contains', 'HDMI') |
-        replace('\"','') | 
-        replace('  ','')
-        }}"
   - name: Enable shairport-sync
     ansible.builtin.systemd_service:
       name: shairport-sync

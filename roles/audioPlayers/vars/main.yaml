@@ -1,0 +1,6 @@
+output_device: "{{ shairport_sync_h['stdout_lines'] | 
+  select('contains', 'hw:') |
+  reject('contains', 'HDMI') |
+  replace('\"','') | 
+  replace('  ','')
+  }}"
