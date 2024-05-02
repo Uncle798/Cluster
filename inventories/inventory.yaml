@@ -17,10 +17,8 @@ chromeboxes:
       ansible_host: 192.168.4.20
     chromebox14.local:
       ansible_host: 192.168.4.22
-      ansible_become_password: branson
     chromebox15.local:
       ansible_host: 192.168.4.21
-      ansible_become_password: branson
 
 armBoards:
   hosts:
@@ -62,6 +60,11 @@ garage:
     chromebox05.local:
 
 # Software
+testing:
+  hosts:
+    chromebox15.local:
+      ansible_host:
+        192.168.4.21
 haproxy_cluster:
   hosts:
     chromebox14.local:
