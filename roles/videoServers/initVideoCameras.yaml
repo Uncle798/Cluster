@@ -1,0 +1,9 @@
+- name: Initialize video players
+  hosts: video_servers
+  remote_user: branson
+  become: true
+  become_method: sudo
+  vars_files:
+    - /Users/ericbranson/Documents/Cluster/vault_vars.yaml
+  roles:
+    - common
