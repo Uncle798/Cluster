@@ -1,6 +1,6 @@
 ---
 - name: Initialize chromebox
-  hosts: chromebox05.local
+  hosts: chromebox15.local
   become: true
   remote_user: branson
   become_method: sudo

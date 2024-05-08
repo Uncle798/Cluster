@@ -1,5 +1,5 @@
 - name: Initialize audio players
-  hosts: chromebox14.local
+  hosts: chromebox15.local
   remote_user: branson
   become: true
   become_method: sudo
@@ -79,6 +79,13 @@
       src: ../templates/shairport-sync.conf.j2
       dest: /etc/shairport-sync.conf
       mode: "ug=rw,a=r"
+    vars:
+      output_device: "{{ shairport_sync_h['stdout_lines'] | 
+        select('contains', 'hw:') |
+        reject('contains', 'HDMI') |
+        replace('\"','') | 
+        replace('  ','')
+        }}"
   - name: Enable shairport-sync
     ansible.builtin.systemd_service:
       name: shairport-sync
