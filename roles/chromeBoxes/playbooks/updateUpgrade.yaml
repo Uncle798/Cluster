@@ -1,0 +1,12 @@
+- name: Update and upgrade thru Apt
+  hosts: chromeboxes
+  become: true
+  remote_user: branson
+  become_method: sudo
+  tasks:
+    - name: Update and upgrade thru apt
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: true
+- name: Reboot 
+  ansible.builtin.import_playbook: rebootSequentially.yaml
