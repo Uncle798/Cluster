@@ -33,7 +33,7 @@ armBoards:
 
 myMac:
   hosts:
-    ericsMac:
+    ericsMac.local:
       ansible_host: 192.168.1.51
       become_user: ericbranson
       ansible_python_interpreter: auto_silent
@@ -52,7 +52,7 @@ myoffice:
     chromebox13.local:
 downstairs_living_room:
   hosts:
-    ericsMac:
+    ericsMac.local:
     chromebox14.local:
     chromebox15.local:
 garage:
@@ -92,20 +92,20 @@ k3s_cluster:
   children:
     server:
       hosts:
-        chromebox01.local:
-        chromebox02.local:
-        chromebox03.local:
-    agent:
-      hosts:
         chromebox11.local:
         chromebox12.local:
         chromebox13.local:
+    agent:
+      hosts:
+        chromebox01.local:
+        chromebox02.local:
+        chromebox03.local:
   vars:
     ansible_port: 22
-    ansible_user: branson
+    ansible_user: ansible
     k3s_version: v1.29.2+k3s1
     token: "{{ k3s_token }}"
-    api_endpoint: "{{ hostvars[groups['server'][0]]['ansible_host'] | default(groups['server'][0]) }}"
+    api_endpoint: "{{ 192.168.4.201 | default(groups['server'][0]) }}"
     extra_server_args: ""
     extra_agent_args: ""
 
