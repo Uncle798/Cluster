@@ -57,18 +57,12 @@
     ansible.builtin.command:
       chdir: /home/branson/shairport-sync
       cmd: make install
-    become: true
-  - name: Make scripts dir
-    ansible.builtin.file:
-      state: directory
-      path: /home/branson/scripts
-      owner: branson
-      mode: "ug=rww,a=r"
   - name: Make log file
     ansible.builtin.file:
       state: touch
       path: /home/branson/shairport-sync/log.log
-      owner: branson
+      owner: shairport-sync
+      group: audio
       mode: "ug=rw,a=r"
   - name: Get hardware output devices
     ansible.builtin.command:
@@ -79,12 +73,15 @@
       src: ../templates/shairport-sync.conf.j2
       dest: /etc/shairport-sync.conf
       mode: "ug=rw,a=r"
+      owner: branson
+      group: audio
     vars:
       output_device: "{{ shairport_sync_h['stdout_lines'] | 
         select('contains', 'hw:') |
         reject('contains', 'HDMI') |
         replace('\"','') | 
-        replace('  ','')
+        replace('  ','') |
+        replace('hw:', '')
         }}"
   - name: Enable shairport-sync
     ansible.builtin.systemd_service:
