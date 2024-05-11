@@ -3,8 +3,8 @@ global_defs {
 }
 
 vrrp_track_process track_haproxy {
-    process haproxy
-    delay 1
+    script 'aillall -0 haproxy' # from https://docs.k3s.io/datastore/cluster-loadbalancer
+    interval 2
 }
 
 {% for interface in interfaces %}

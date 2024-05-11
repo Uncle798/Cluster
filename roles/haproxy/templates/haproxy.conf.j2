@@ -38,16 +38,15 @@ backend certbot
 
 frontend k3s_control_front
     bind {{ haproxy_vip }}:{{ k3s_control_port }}
+    mode tcp
+    option tcplog
     default_backend k3s_control_back
 
 backend k3s_control_back
-    mode http
+    mode tcp
     balance leaseconn
-    option forwardfor
-    option http-server-close
-    option httpclose
-    http-request set-header X-Forwarded-Port %[dst_port]
-    http-request add-header X-Forwarded-Proto https if { ssl_fc }
+    option tcp check
+    default-server inter 10s dowinter 5s
     {% for host in k3s_control_cluster %}
         server {{ host['inventory_hostname'] }} {{ host['ansible_host'] }}:{{ k3sControl_port }} check
     {% endfor %}

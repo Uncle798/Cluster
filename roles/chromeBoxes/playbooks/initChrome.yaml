@@ -2,9 +2,9 @@
 - name: Initialize chromebox
   hosts: chromebox15.local
   become: true
-  remote_user: branson
+  remote_user: ansible
   become_method: sudo
-  gather_facts: true # for initial run need to use bad "branson" password
+  gather_facts: true 
   vars_files: 
     /Users/ericbranson/Documents/Cluster/vault_vars.yaml
   vars:
@@ -21,5 +21,6 @@
     - name: Install OMZ
       ansible.builtin.import_tasks:
         file: "../tasks/installOMZ.yaml"
-
+- name: Reboot 
+  ansible.builtin.import_playbook: rebootSequentially.yaml
 ... 
