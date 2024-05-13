@@ -1,9 +1,9 @@
 #!/bin/zsh/
 GET_HOSTNAME () {
-    LINES_IN_NAMES=$(wc -l /Users/ericbranson/Documents/Cluster/Multipass/scripts/serverNames.txt | awk '{print $1}')
+    LINES_IN_NAMES=$(wc -l /Users/ericbranson/Documents/Cluster/roles/Multipass/scripts/serverNames.txt | awk '{print $1}')
     RAND_LINE="$(jot -r 1 1 $LINES_IN_NAMES)"
-    HOSTNAME_PREFIX="$(head -$RAND_LINE ~/documents/cluster/multipass/scripts/serverNames.txt | TAIL -1 | tr "[A-Z]" "[a-z]")"
-    gsed -i "$RAND_LINE"d /Users/ericbranson/Documents/Cluster/Multipass/scripts/serverNames.txt
+    HOSTNAME_PREFIX="$(head -$RAND_LINE ~/documents/cluster/roles/multipass/scripts/serverNames.txt | TAIL -1 | tr "[A-Z]" "[a-z]")"
+    gsed -i "$RAND_LINE"d /Users/ericbranson/Documents/Cluster/roles/Multipass/scripts/serverNames.txt
     echo "$HOSTNAME_PREFIX was chosen would you like to choose another? [y/n]"
     read GOOD_HOSTNAME
     if [ $GOOD_HOSTNAME = 'y' ]; then
@@ -49,33 +49,33 @@ if test -f "~/Documents/Cluster/inventories/multipassInventory.yaml"; then
     rm ~/Documents/Cluster/inventories/multipassInventory.yaml
 fi
 if [[ $NUM_PROXIES -gt 0 ]]; then
-    echo "proxyCluster:\n  hosts:" > ~/Documents/Cluster/inventories/multipassInventory.yaml
+    echo "haproxy_cluster:\n  hosts:" > ~/Documents/Cluster/inventories/multipassInventory.yaml
     for x in {1..$NUM_PROXIES}; do
         INSTANCE_NUMBER=$x
         if [ $x -lt 10 ]; then
             INSTANCE_NUMBER="0$x"
         fi
-        multipass launch -n $HOSTNAME_PREFIX$INSTANCE_NUMBER --cloud-init ~/documents/cluster/multipass/cloud-init.yaml -c 2 -m 2G -d 4G
+        multipass launch -n $HOSTNAME_PREFIX$INSTANCE_NUMBER --cloud-init ~/documents/cluster/roles/multipass/cloud-init.yaml -c 2 -m 2G -d 4G
         IP=$(multipass info $HOSTNAME_PREFIX$INSTANCE_NUMBER | grep IPv4 | awk '{print $2}')
         echo "    $HOSTNAME_PREFIX$INSTANCE_NUMBER:\n      ansible_host: $IP" >> ~/Documents/Cluster/inventories/multipassInventory.yaml
         ssh-keyscan $IP >> ~/.ssh/known_hosts
     done
 fi
 if [[ $NUM_CONTROL -gt 0 ]]; then
-    echo "k3sControlCluster:\n  hosts:" >> ~/Documents/Cluster/inventories/multipassInventory.yaml
+    echo "k3s_cluster:\n    children:\n     server:\n         hosts:" >> ~/Documents/Cluster/inventories/multipassInventory.yaml
     for ((x=11; x < 11+NUM_CONTROL; x++)); do
         INSTANCE_NUMBER=$x
-        multipass launch -n $HOSTNAME_PREFIX$INSTANCE_NUMBER --cloud-init ~/documents/cluster/multipass/cloud-init.yaml -c 2 -m 2G -d 4G
+        multipass launch -n $HOSTNAME_PREFIX$INSTANCE_NUMBER --cloud-init ~/documents/cluster/roles/multipass/cloud-init.yaml -c 2 -m 2G -d 4G
         IP=$(multipass info $HOSTNAME_PREFIX$INSTANCE_NUMBER | grep IPv4 | awk '{print $2}')
         echo "    $HOSTNAME_PREFIX$INSTANCE_NUMBER:\n      ansible_host: $IP" >> ~/Documents/Cluster/inventories/multipassInventory.yaml 
         ssh-keyscan $IP >> ~/.ssh/known_hosts
     done
 fi
 if [[ $NUM_AGENTS -gt 0 ]]; then
-    echo "k3sAgentCluster:\n  hosts:" >> ~/Documents/Cluster/inventories/multipassInventory.yaml 
+    echo "k3s_cluster:\n    children:\n     agent:\n         hosts:" >> ~/Documents/Cluster/inventories/multipassInventory.yaml 
     for ((x=21; x < 21+NUM_AGENTS; x++)); do
         INSTANCE_NUMBER=$x
-        multipass launch -n $HOSTNAME_PREFIX$INSTANCE_NUMBER --cloud-init ~/documents/cluster/multipass/cloud-init.yaml -c 2 -m 2G -d 4G
+        multipass launch -n $HOSTNAME_PREFIX$INSTANCE_NUMBER --cloud-init ~/documents/cluster/roles/multipass/cloud-init.yaml -c 2 -m 2G -d 4G
         IP=$(multipass info $HOSTNAME_PREFIX$INSTANCE_NUMBER | grep IPv4 | awk '{print $2}')
         echo "    $HOSTNAME_PREFIX$INSTANCE_NUMBER:\n      ansible_host: $IP" >> ~/Documents/Cluster/inventories/multipassInventory.yaml 
         ssh-keyscan $IP >> ~/.ssh/known_hosts
