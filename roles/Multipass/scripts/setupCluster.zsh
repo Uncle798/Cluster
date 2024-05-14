@@ -62,22 +62,22 @@ if [[ $NUM_PROXIES -gt 0 ]]; then
     done
 fi
 if [[ $NUM_CONTROL -gt 0 ]]; then
-    echo "k3s_cluster:\n    children:\n     server:\n         hosts:" >> ~/Documents/Cluster/inventories/multipassInventory.yaml
+    echo "k3s_cluster:\n  children:\n    server:\n      hosts:" >> ~/Documents/Cluster/inventories/multipassInventory.yaml
     for ((x=11; x < 11+NUM_CONTROL; x++)); do
         INSTANCE_NUMBER=$x
         multipass launch -n $HOSTNAME_PREFIX$INSTANCE_NUMBER --cloud-init ~/documents/cluster/roles/multipass/cloud-init.yaml -c 2 -m 2G -d 4G
         IP=$(multipass info $HOSTNAME_PREFIX$INSTANCE_NUMBER | grep IPv4 | awk '{print $2}')
-        echo "    $HOSTNAME_PREFIX$INSTANCE_NUMBER:\n      ansible_host: $IP" >> ~/Documents/Cluster/inventories/multipassInventory.yaml 
+        echo "                  $HOSTNAME_PREFIX$INSTANCE_NUMBER:\n                     ansible_host: $IP" >> ~/Documents/Cluster/inventories/multipassInventory.yaml          
         ssh-keyscan $IP >> ~/.ssh/known_hosts
     done
 fi
 if [[ $NUM_AGENTS -gt 0 ]]; then
-    echo "k3s_cluster:\n    children:\n     agent:\n         hosts:" >> ~/Documents/Cluster/inventories/multipassInventory.yaml 
+    echo "      agent:\n        hosts:" >> ~/Documents/Cluster/inventories/multipassInventory.yaml 
     for ((x=21; x < 21+NUM_AGENTS; x++)); do
         INSTANCE_NUMBER=$x
         multipass launch -n $HOSTNAME_PREFIX$INSTANCE_NUMBER --cloud-init ~/documents/cluster/roles/multipass/cloud-init.yaml -c 2 -m 2G -d 4G
-        IP=$(multipass info $HOSTNAME_PREFIX$INSTANCE_NUMBER | grep IPv4 | awk '{print $2}')
-        echo "    $HOSTNAME_PREFIX$INSTANCE_NUMBER:\n      ansible_host: $IP" >> ~/Documents/Cluster/inventories/multipassInventory.yaml 
+        IP=$(multipass info $HOSTNAME_PREFIX$INSTANCE_NUMBER | grep IPv4 | awk '{print $2}')     
+        echo "          $HOSTNAME_PREFIX$INSTANCE_NUMBER:\n            ansible_host: $IP" >> ~/Documents/Cluster/inventories/multipassInventory.yaml          
         ssh-keyscan $IP >> ~/.ssh/known_hosts
     done
 fi

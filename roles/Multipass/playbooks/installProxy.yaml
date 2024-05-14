@@ -27,7 +27,7 @@
         path: /opt/certbot/dhparams.pem
         owner: certbot
         group: certbot
-        mode: 0x644
+        mode: '0x644'
         size: 4096
       async: 600
       poll: 0

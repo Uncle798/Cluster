@@ -10,7 +10,6 @@ dovanatonaus
 simba
 trabe
 trelaine
-ambassador
 ottaviano
 adelphi
 zhukov
@@ -87,7 +86,6 @@ corvette
 berlinetta
 constellation
 stargazer
-gettysburg
 hathaway
 magellan
 victory
@@ -145,7 +143,7 @@ yeager
 antares
 arcos
 constitution
-vincentprice	
+vincentprice
 toulouse
 trinity
 braxton	
@@ -261,7 +259,6 @@ flynt
 serpentine
 vanguard	
 santamaria
-nina
 pinta
 paris
 othello
