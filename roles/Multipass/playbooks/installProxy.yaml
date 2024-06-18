@@ -1,6 +1,6 @@
 ---
 - name: Initialize proxy hosts
-  hosts: proxyCluster
+  hosts: haproxy_cluster
   remote_user: branson
   become: true
   become_method: sudo

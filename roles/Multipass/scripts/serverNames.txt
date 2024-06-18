@@ -120,7 +120,6 @@ pasteur
 prokofiev
 republic
 revere
-tripoli
 danube
 ganges
 mekong
@@ -282,7 +281,6 @@ capecanaviral
 sitak
 saratoga
 steel
-tribute
 maria
 rogers
 lantree
