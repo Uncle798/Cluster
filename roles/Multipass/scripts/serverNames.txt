@@ -40,7 +40,6 @@ johnston
 abernathy
 quantum
 southcarolina
-rockhill
 newbrunswick
 iwojima
 maine
@@ -166,7 +165,6 @@ malinche
 melbourne
 okinawa
 potemkin
-repulse
 roosevelt
 tecumseh
 aegian

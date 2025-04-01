@@ -1,6 +1,6 @@
 ---
 - name: Initialize chromebox
-  hosts: chromebox15.local
+  hosts: chromeboxes
   become: true
   remote_user: ansible
   become_method: sudo
